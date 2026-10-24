@@ -40,3 +40,11 @@ Open **Mind map** in the sidebar and select a project. It includes all non-delet
 The AI receives the entire task catalog and may replace the whole nested taxonomy when new work changes its meaning. Classification runs in the background when task descriptions or membership change; **Reorganize with AI** forces a refresh. Execution dependencies are never used as edges in this view. New or omitted tasks remain visible under **À classer** until assigned to a theme.
 
 Expand/collapse themes individually or together. Search reveals matching tasks inside collapsed branches. Collapse preferences are stored per project in the browser. Classification is persisted in SQLite, uses one recoverable lease per project, and preserves the previous map on failure. While the view is open it checks for updates every five seconds; opening it later catches up with changes made while it was closed.
+
+## AutoTask
+
+Enable **AutoTask** when creating a feature. The configured AI reads source excerpts and the complete task catalog, including active, pending, completed and archived features. It reuses existing prerequisites, creates sub-features only when needed, and keeps the original request as the final integration task. User-selected prerequisites are preserved. Every new dependency is checked for cycles and repository boundaries before records are created.
+
+The task's **Overview → AutoTask** shows planning progress, errors and links to its sub-features. A child links back to its originating task; this grouping is separate from prerequisite edges. Generated tasks inherit the original execution agent, model, effort, approval gates and workflow options. The final task waits for all prerequisites through the existing dependency and capacity gates, and receives their context through the normal feature worker.
+
+**Pending** still defers execution: AutoTask prepares and initializes its plan, but starts no task. Starting the original task later starts eligible children and blocks dependent tasks until their prerequisites land. Plans are saved before materialization with stable child IDs and a recoverable planning lease; **Retry preparation** resumes the draft after an error without duplicating children. A start is refused until planning has finished. In the CLI, use `shep feat new "…" --auto-task`, optionally with `--pending`.

@@ -43,6 +43,28 @@ describe('useCanvasEventListeners — shep:focus-repository', () => {
     expect(focusOnNode).toHaveBeenCalledWith('repo-r1');
   });
 
+  it('shows a deferred AutoTask as pending while initialization runs', () => {
+    const { createFeatureNode } = setup();
+    window.dispatchEvent(
+      new CustomEvent('shep:feature-created', {
+        detail: {
+          featureId: 'auto',
+          name: 'Trading',
+          repositoryPath: '/code/proj',
+          pending: true,
+        },
+      })
+    );
+    expect(createFeatureNode).toHaveBeenCalledWith(
+      'repo-r1',
+      expect.objectContaining({
+        state: 'pending',
+        lifecycle: 'pending',
+        featureId: 'auto',
+      })
+    );
+  });
+
   it('focuses by path when the repository has no entity id', () => {
     const { focusOnNode } = setup();
 

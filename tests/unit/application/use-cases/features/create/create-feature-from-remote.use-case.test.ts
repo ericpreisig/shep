@@ -103,6 +103,12 @@ describe('CreateFeatureFromRemoteUseCase', () => {
   // ---------------------------------------------------------------------------
 
   describe('execute()', () => {
+    it('preserves AutoTask when creating a feature from a remote repository', async () => {
+      await useCase.execute({ ...baseInput, autoTask: true });
+      expect(mockCreateFeatureUseCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({ autoTask: true })
+      );
+    });
     it('should chain import then createFeature', async () => {
       const result = await useCase.execute(baseInput);
 

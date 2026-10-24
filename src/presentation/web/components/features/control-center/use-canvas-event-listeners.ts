@@ -78,9 +78,13 @@ export function useCanvasEventListeners(handlers: CanvasEventListenerHandlers): 
           repositoryPath: string;
           parentId?: string;
           parentIds?: string[];
+          pending?: boolean;
           applicationId?: string;
         }>
       ).detail;
+      const pendingState = detail.pending
+        ? { state: 'pending' as const, lifecycle: 'pending' as const }
+        : {};
 
       // When parentId is provided, attach to the parent feature node via a
       // dependency edge instead of the repo node.
@@ -90,6 +94,7 @@ export function useCanvasEventListeners(handlers: CanvasEventListenerHandlers): 
           parentNodeId,
           {
             state: 'creating',
+            ...pendingState,
             featureId: detail.featureId,
             ...(detail.parentIds ? { parentIds: detail.parentIds } : {}),
             name: detail.name,
@@ -114,6 +119,7 @@ export function useCanvasEventListeners(handlers: CanvasEventListenerHandlers): 
             appNodeId,
             {
               state: 'running',
+              ...pendingState,
               featureId: detail.featureId,
               name: detail.name,
               description: detail.description,
@@ -134,6 +140,7 @@ export function useCanvasEventListeners(handlers: CanvasEventListenerHandlers): 
 
       createFeatureNode(repoNode?.id ?? null, {
         state: 'running',
+        ...pendingState,
         featureId: detail.featureId,
         name: detail.name,
         description: detail.description,

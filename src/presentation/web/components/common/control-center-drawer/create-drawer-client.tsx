@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
+import { SdlcLifecycle } from '@shepai/core/domain/generated/output';
 import { createFeature } from '@/app/actions/create-feature';
 import { FeatureCreateDrawer } from '@/components/common/feature-create-drawer';
 import type { BuildMode, FeatureCreatePayload } from '@/components/common/feature-create-drawer';
@@ -97,6 +98,7 @@ export function CreateDrawerClient(props: CreateDrawerClientProps) {
                 repositoryPath: result.feature!.repositoryPath,
                 parentId: data.parentId,
                 parentIds: data.parentIds,
+                pending: result.feature!.lifecycle === SdlcLifecycle.Pending,
                 applicationId: result.feature!.applicationId ?? data.applicationId,
               },
             })

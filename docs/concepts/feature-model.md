@@ -28,6 +28,9 @@ export type Feature = BaseEntity & {
   worktreePath?: string;
   pr?: PullRequest;
   parentId?: UUID;
+  parentIds?: UUID[];
+  discovery?: FeatureDiscovery;
+  autoTask?: AutoTaskState;
   attachments?: Attachment[];
 };
 ```
@@ -61,6 +64,9 @@ export type Feature = BaseEntity & {
 | `specPath`     | `string?`       | Absolute path to feature spec directory (optional)   |
 | `worktreePath` | `string?`       | Absolute path to git worktree (optional)             |
 | `parentId`     | `UUID?`         | Parent feature ID for dependency tracking (optional) |
+| `parentIds`    | `UUID[]?`       | All prerequisites; every parent must land before execution |
+| `discovery`    | `FeatureDiscovery?` | Implemented capability key, source evidence and analysis date |
+| `autoTask`     | `AutoTaskState?` | Opt-in planning, stable child plan, originating feature and errors |
 
 ### Relationships
 

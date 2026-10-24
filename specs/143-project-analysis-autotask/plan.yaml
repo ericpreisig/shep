@@ -36,6 +36,6 @@ content: '## Clean Architecture
 
   ## Validation
 
-  TDD for source evidence, reanalysis deduplication, invalid dependency plans, joins with existing tasks,
+  RED-GREEN-REFACTOR TDD for source evidence, reanalysis deduplication, invalid dependency plans, joins with existing tasks,
   idempotent materialization and deferred starts. Run focused tests, broad regressions, typecheck, lint
   and release build, then verify real Codex and browser behavior.'

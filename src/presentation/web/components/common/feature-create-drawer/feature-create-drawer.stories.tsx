@@ -135,6 +135,18 @@ export const Default: Story = {
   render: () => <CreateDrawerTrigger />,
 };
 
+export const AutoTask: Story = {
+  render: () => <CreateDrawerTrigger label="Plan with AutoTask" />,
+  play: async ({ canvasElement }) => {
+    await userEvent.click(
+      within(canvasElement).getByRole('button', { name: 'Plan with AutoTask' })
+    );
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(await body.findByRole('switch', { name: 'AutoTask' }));
+    await expect(body.getByRole('switch', { name: 'AutoTask' })).toBeChecked();
+  },
+};
+
 /**
  * Pre-filled form — click to open, then description is typed in.
  * Demonstrates the form in a "ready to submit" state.

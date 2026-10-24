@@ -780,7 +780,8 @@
     "injectSkills": "Inject",
     "injectSkillsDescription": "Include curated skills in the feature worktree.",
     "effort": "Effort",
-    "effortFromSettings": "Selon les paramètres"
+    "effortFromSettings": "Selon les paramètres",
+    "autoTaskDescription": "L’IA crée des sous-features si nécessaire et définit les dépendances avec toutes les tâches existantes. Le mode En attente prépare le plan sans lancer les tâches."
   },
   "featureDrawer": {
     "copyFeatureId": "Copier l'ID de la fonctionnalité",
@@ -2050,7 +2051,14 @@
     "correctionSent": "Correction enregistrée ; exécution relancée",
     "failed": "La modification n’a pas pu être appliquée",
     "history": "Corrections précédentes",
-    "chatTakesOver": "L’envoi d’un message met l’exécution en pause pour continuer ici. Utilise « Rectifier la tâche en cours » pour corriger puis reprendre automatiquement."
+    "chatTakesOver": "L’envoi d’un message met l’exécution en pause pour continuer ici. Utilise « Rectifier la tâche en cours » pour corriger puis reprendre automatiquement.",
+    "autoTaskPlanning": "AutoTask prépare le découpage et les dépendances…",
+    "autoTaskReady": "Plan AutoTask prêt",
+    "autoTaskRetry": "Reprendre la préparation",
+    "autoTaskChildren": "Sous-features",
+    "autoTaskSource": "Créée par AutoTask",
+    "autoTaskNone": "Aucune sous-feature nécessaire : les dépendances sont prêtes.",
+    "sourceEvidence": "Fonctionnalité découverte dans le code"
   },
   "mindMap": {
     "title": "Mind map du projet",

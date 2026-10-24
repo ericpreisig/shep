@@ -60,6 +60,9 @@ export type Feature = SoftDeletableEntity & {
   maxIterations?: integer;
   pr?: PullRequest;
   parentId?: UUID;
+  parentIds?: UUID[];
+  discovery?: FeatureDiscovery;
+  autoTask?: AutoTaskState;
   // Last agent coordination decision with an overlapping feature (spec 141)
   coordination?: FeatureCoordination;
   previousLifecycle?: SdlcLifecycle;

@@ -21,6 +21,38 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Pending: Story = {};
+export const AutoTaskReady: Story = {
+  args: {
+    initialData: {
+      ...meta.args.initialData,
+      autoTask: {
+        enabled: true,
+        plan: { ready: true, tasks: [], parentIds: ['combat', 'equipment'] },
+      },
+      autoTaskChildren: [
+        { id: 'combat', name: 'Combat foundation', lifecycle: 'Implementation' },
+        { id: 'equipment', name: 'Equipment integration', lifecycle: 'Blocked' },
+      ],
+    },
+  },
+};
+export const AutoTaskFailed: Story = {
+  args: {
+    initialData: {
+      ...meta.args.initialData,
+      autoTask: { enabled: true, error: 'The agent timed out. The saved plan can be resumed.' },
+    },
+  },
+};
+export const DiscoveredCapability: Story = {
+  args: {
+    initialData: {
+      ...meta.args.initialData,
+      editable: false,
+      discovery: { key: 'crafting', evidencePaths: ['src/crafting.js'], analyzedAt: new Date() },
+    },
+  },
+};
 export const Running: Story = {
   args: {
     initialData: {

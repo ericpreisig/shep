@@ -127,6 +127,8 @@ export interface FeatureCreatePayload {
   fast: boolean;
   /** When true, create the feature in pending state (no agent spawned). */
   pending?: boolean;
+  /** Infer existing prerequisites and create sub-features when needed. */
+  autoTask?: boolean;
   /** Fork repo and create PR to upstream at merge time. */
   forkAndPr: boolean;
   /** Commit specs/evidences into the repo (defaults false when forkAndPr is enabled). */
@@ -364,6 +366,7 @@ export function FeatureCreateDrawer({
   const [mode, setMode] = useState<BuildMode>(defaultMode);
   const fast = mode === BuildModeEnum.Fast;
   const [pending, setPending] = useState(false);
+  const [autoTask, setAutoTask] = useState(false);
   const [forkAndPr, setForkAndPr] = useState(false);
   const [commitSpecs, setCommitSpecs] = useState(true);
   const [rebaseBeforeBranch, setRebaseBeforeBranch] = useState(true);
@@ -482,6 +485,7 @@ export function FeatureCreateDrawer({
     setLocalRepos(repositories ?? []);
     setMode(defaultMode);
     setPending(false);
+    setAutoTask(false);
     setForkAndPr(false);
     setCommitSpecs(true);
     setRebaseBeforeBranch(true);
@@ -665,6 +669,7 @@ export function FeatureCreateDrawer({
         injectSkills,
         ...(Object.keys(pluginOverrides).length > 0 ? { activePlugins: pluginOverrides } : {}),
         ...(pending ? { pending } : {}),
+        ...(autoTask ? { autoTask } : {}),
         ...(overrideAgent ? { agentType: overrideAgent } : {}),
         ...(overrideModel ? { model: overrideModel } : {}),
         ...(overrideEffort ? { effort: overrideEffort } : {}),
@@ -694,6 +699,7 @@ export function FeatureCreateDrawer({
       injectSkills,
       pluginOverrides,
       pending,
+      autoTask,
       overrideAgent,
       overrideModel,
       overrideEffort,
@@ -975,7 +981,23 @@ export function FeatureCreateDrawer({
                 {uploadError ? (
                   <p className="text-destructive px-3 pb-2 text-xs">{uploadError}</p>
                 ) : null}
-                <div className="border-input flex items-center gap-3 border-t px-3 py-1.5">
+                <div className="border-input flex items-start gap-3 border-t px-3 py-3">
+                  <Switch
+                    id="auto-task"
+                    checked={autoTask}
+                    onCheckedChange={setAutoTask}
+                    disabled={isSubmitting}
+                  />
+                  <div className="space-y-1">
+                    <Label htmlFor="auto-task" className="cursor-pointer text-sm font-medium">
+                      AutoTask
+                    </Label>
+                    <p className="text-muted-foreground text-xs">
+                      {t('createDrawer.autoTaskDescription')}
+                    </p>
+                  </div>
+                </div>
+                <div className="border-input flex flex-wrap items-center gap-3 border-t px-3 py-1.5">
                   <AgentModelPicker
                     // No hardcoded `'claude-code'` fallback — `currentAgentType`
                     // already comes from the user's settings via the create

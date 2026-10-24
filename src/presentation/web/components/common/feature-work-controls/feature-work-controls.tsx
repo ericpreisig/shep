@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { GitFork, MessageSquareMore } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { ParentFeatureCombobox } from '@/components/common/feature-create-drawer
 import {
   getFeatureWorkControls,
   correctFeature,
+  prepareAutoTask,
   type FeatureWorkControlsData,
 } from '@/app/actions/feature-work-controls';
 import { reparentFeature } from '@/app/actions/reparent-feature';
@@ -27,21 +29,27 @@ export function FeatureWorkControls({
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, startTransition] = useTransition();
+  const parentsDirty = useRef(false);
   useEffect(() => {
     if (initialData) return;
     let disposed = false;
-    getFeatureWorkControls(featureId)
-      .then((result) => {
-        if (!disposed) {
-          setData(result);
-          setParents(result.parents);
-        }
-      })
-      .catch((reason) => {
-        if (!disposed) setError(String(reason));
-      });
+    parentsDirty.current = false;
+    const refresh = () =>
+      getFeatureWorkControls(featureId)
+        .then((result) => {
+          if (!disposed) {
+            setData(result);
+            if (!parentsDirty.current) setParents(result.parents);
+          }
+        })
+        .catch((reason) => {
+          if (!disposed) setError(String(reason));
+        });
+    void refresh();
+    const timer = setInterval(() => void refresh(), 5000);
     return () => {
       disposed = true;
+      clearInterval(timer);
     };
   }, [featureId, initialData]);
   if (!data)
@@ -51,19 +59,26 @@ export function FeatureWorkControls({
       </p>
     ) : null;
 
-  function submit(action: 'parents' | 'correction') {
+  function submit(action: 'parents' | 'correction' | 'autotask') {
     setError('');
     setNotice('');
     startTransition(async () => {
       const result =
-        action === 'parents'
-          ? await reparentFeature(featureId, parents)
-          : await correctFeature(featureId, correction);
+        action === 'autotask'
+          ? await prepareAutoTask(featureId)
+          : action === 'parents'
+            ? await reparentFeature(featureId, parents)
+            : await correctFeature(featureId, correction);
       if (!result.success) {
         setError(result.error ?? t('featureWork.failed'));
         return;
       }
       if (action === 'correction') setCorrection('');
+      if (action === 'parents') parentsDirty.current = false;
+      if (action === 'autotask') {
+        setData(await getFeatureWorkControls(featureId));
+        return;
+      }
       setData((current) =>
         current
           ? {
@@ -85,6 +100,59 @@ export function FeatureWorkControls({
 
   return (
     <div className="space-y-4 px-3 pt-4" data-testid="feature-work-controls">
+      {data.autoTask?.enabled ? (
+        <section className="space-y-2" aria-label="AutoTask">
+          <h3 className="text-sm font-semibold">AutoTask</h3>
+          <p className="text-muted-foreground text-xs">
+            {t(
+              data.autoTask.plan?.ready
+                ? 'featureWork.autoTaskReady'
+                : 'featureWork.autoTaskPlanning'
+            )}
+          </p>
+          {data.autoTask.error ? (
+            <p role="alert" className="text-destructive text-xs">
+              {data.autoTask.error}
+            </p>
+          ) : null}
+          {data.editable && !data.autoTask.plan?.ready ? (
+            <Button variant="outline" size="sm" disabled={busy} onClick={() => submit('autotask')}>
+              {t('featureWork.autoTaskRetry')}
+            </Button>
+          ) : null}
+          {data.autoTaskChildren?.length ? (
+            <ul aria-label={t('featureWork.autoTaskChildren')} className="space-y-1 text-xs">
+              {data.autoTaskChildren.map((child) => (
+                <li key={child.id} className="flex items-center justify-between gap-2">
+                  <Link className="text-primary hover:underline" href={`/feature/${child.id}`}>
+                    {child.name}
+                  </Link>
+                  <span className="text-muted-foreground">{child.lifecycle}</span>
+                </li>
+              ))}
+            </ul>
+          ) : data.autoTask.plan?.ready ? (
+            <p className="text-muted-foreground text-xs">{t('featureWork.autoTaskNone')}</p>
+          ) : null}
+        </section>
+      ) : data.autoTask?.sourceFeatureId ? (
+        <Link
+          className="text-primary text-xs hover:underline"
+          href={`/feature/${data.autoTask.sourceFeatureId}`}
+        >
+          {t('featureWork.autoTaskSource')}
+        </Link>
+      ) : null}
+      {data.discovery ? (
+        <section className="space-y-1">
+          <h3 className="text-sm font-semibold">{t('featureWork.sourceEvidence')}</h3>
+          <ul className="text-muted-foreground space-y-1 font-mono text-xs break-all">
+            {data.discovery.evidencePaths.map((path) => (
+              <li key={path}>{path}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       <section className="space-y-2">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
           <GitFork className="size-4" />
@@ -96,7 +164,10 @@ export function FeatureWorkControls({
         <ParentFeatureCombobox
           features={data.choices}
           value={parents}
-          onChange={setParents}
+          onChange={(ids) => {
+            parentsDirty.current = true;
+            setParents(ids);
+          }}
           disabled={!data.editable || busy}
         />
         {data.editable ? (

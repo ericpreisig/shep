@@ -48,6 +48,7 @@ export interface CreateFeatureFromRemoteInput {
   description?: string;
   fast?: boolean;
   pending?: boolean;
+  autoTask?: boolean;
   agentType?: string;
   model?: string;
   /** Optional reasoning effort for the created feature (see CreateFeatureInput.effort). */
@@ -91,6 +92,7 @@ export class CreateFeatureFromRemoteUseCase {
       description: input.description,
       fast: input.fast,
       pending: input.pending,
+      ...(input.autoTask ? { autoTask: true } : {}),
       agentType: input.agentType,
       model: input.model,
       effort: input.effort,
@@ -125,6 +127,7 @@ export class CreateFeatureFromRemoteUseCase {
       description: input.description,
       fast: input.fast,
       pending: input.pending,
+      ...(input.autoTask ? { autoTask: true } : {}),
       agentType: input.agentType,
       model: input.model,
       effort: input.effort,
@@ -160,6 +163,7 @@ export class CreateFeatureFromRemoteUseCase {
         description: input.description,
         fast: input.fast,
         pending: input.pending,
+        ...(input.autoTask ? { autoTask: true } : {}),
         agentType: input.agentType,
         model: input.model,
         effort: input.effort,

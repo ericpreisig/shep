@@ -164,6 +164,19 @@ function makeUploadFromPathFetch() {
 }
 
 describe('FeatureCreateDrawer', () => {
+  it('offers opt-in AutoTask and forwards it together with deferred execution', async () => {
+    const onSubmit = vi.fn();
+    const user = userEvent.setup();
+    renderDrawer({ onSubmit });
+    expect(screen.getByRole('switch', { name: 'AutoTask' })).not.toBeChecked();
+    await user.click(screen.getByRole('switch', { name: 'AutoTask' }));
+    await user.click(screen.getByLabelText('Pending'));
+    await user.type(screen.getByPlaceholderText(descriptionPlaceholder), 'Build a trading system');
+    await user.click(screen.getByRole('button', { name: '+ Create Feature' }));
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ autoTask: true, pending: true })
+    );
+  });
   it('submits all selected parents from the existing creation form', async () => {
     const onSubmit = vi.fn();
     const user = userEvent.setup();

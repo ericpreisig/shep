@@ -780,7 +780,8 @@
     "injectSkills": "Inject",
     "injectSkillsDescription": "Include curated skills in the feature worktree.",
     "effort": "Aufwand",
-    "effortFromSettings": "Aus Einstellungen"
+    "effortFromSettings": "Aus Einstellungen",
+    "autoTaskDescription": "AI creates sub-features when needed and sets dependencies against all existing tasks. Pending mode prepares the plan without starting tasks."
   },
   "featureDrawer": {
     "copyFeatureId": "Feature-ID kopieren",
@@ -2050,7 +2051,14 @@
     "correctionSent": "Correction saved; execution resumed",
     "failed": "The change could not be applied",
     "history": "Previous corrections",
-    "chatTakesOver": "Sending a message pauses background execution so you can continue here. Use “Correct the running task” to apply a correction and resume automatically."
+    "chatTakesOver": "Sending a message pauses background execution so you can continue here. Use “Correct the running task” to apply a correction and resume automatically.",
+    "autoTaskPlanning": "AutoTask is preparing sub-features and dependencies…",
+    "autoTaskReady": "AutoTask plan ready",
+    "autoTaskRetry": "Retry preparation",
+    "autoTaskChildren": "Sub-features",
+    "autoTaskSource": "Created by AutoTask",
+    "autoTaskNone": "No sub-feature needed: dependencies are ready.",
+    "sourceEvidence": "Capability discovered in source code"
   },
   "mindMap": {
     "title": "Project mind map",

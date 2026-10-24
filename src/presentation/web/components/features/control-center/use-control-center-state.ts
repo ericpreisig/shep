@@ -430,7 +430,7 @@ export function useControlCenterState(
         description: dataOverride?.description ?? 'Describe what this feature does',
         featureId: dataOverride?.featureId ?? `#${id.slice(-4)}`,
         ...(dataOverride?.parentIds ? { parentIds: dataOverride.parentIds } : {}),
-        lifecycle: 'requirements',
+        lifecycle: dataOverride?.lifecycle ?? 'requirements',
         state: dataOverride?.state ?? 'running',
         progress: 0,
         repositoryPath: dataOverride?.repositoryPath ?? '',
