@@ -74,7 +74,7 @@ export class SessionBootAttempt {
 
     // Resolve agent type and auth config from settings
     const resolvedAgentType = this.agentConfigResolver.resolveAgentType(state.agentType);
-    const authConfig = this.agentConfigResolver.resolveAuthConfig();
+    const authConfig = this.agentConfigResolver.resolveAuthConfig(resolvedAgentType);
 
     // Spec 121: the session runs with its feature's space logins and
     // identity, and a space that does not allow this agent fails the boot.

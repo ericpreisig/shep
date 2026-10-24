@@ -1,0 +1,16 @@
+feature:
+  id: 144-multiple-agent-providers
+  name: multiple-agent-providers
+  number: 144
+  branch: feat/142-project-orchestration
+  lifecycle: implementation
+status:
+  phase: implementing
+  currentTask: task-3
+  progress:
+    total: 3
+    completed: 2
+    percentage: 67
+  lastUpdated: '2026-10-24T03:30:56.023749+00:00'
+  lastUpdatedBy: shep-kit:implement
+checkpoints: []

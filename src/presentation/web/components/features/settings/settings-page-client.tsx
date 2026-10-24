@@ -35,6 +35,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { SettingsRow, SwitchRow } from './settings-rows';
+import { AgentProviderSettings } from './agent-provider-settings';
+import { resolveAgentConfig } from '@shepai/core/domain/shared/agent-providers';
 import { FeatureFlagsList } from './feature-flags-list';
 import { listFeatureFlagDescriptors } from '@shepai/core/domain/shared/feature-flag-catalog';
 import { createDefaultSettings } from '@shepai/core/domain/factories/settings-defaults.factory';
@@ -761,18 +763,11 @@ export function SettingsPageClient({
                 mode="settings"
                 onAgentModelChange={(newAgent) => {
                   const newType = newAgent as AgentType;
+                  setToken('');
+                  setTokenCleared(false);
                   setAgentType(newType);
-                  // Auto-switch auth method for token-required / session-only agents
-                  if (TOKEN_REQUIRED_AGENTS.has(newType) && authMethod !== AgentAuthMethod.Token) {
-                    setAuthMethod(AgentAuthMethod.Token);
-                    save({ agent: { type: newType, authMethod: AgentAuthMethod.Token } });
-                  } else if (
-                    SESSION_ONLY_AGENTS.has(newType) &&
-                    authMethod !== AgentAuthMethod.Session
-                  ) {
-                    setAuthMethod(AgentAuthMethod.Session);
-                    save({ agent: { type: newType, authMethod: AgentAuthMethod.Session } });
-                  }
+                  // The picker persists the selection; restore this provider's own auth mode.
+                  setAuthMethod(resolveAgentConfig(settings, newType).authMethod);
                 }}
                 className="w-55"
               />
@@ -880,6 +875,12 @@ export function SettingsPageClient({
                 </div>
               </SettingsRow>
             )}
+            <AgentProviderSettings
+              agent={settings.agent}
+              defaultType={agentType}
+              providers={settings.agentProviders}
+              tokenPresence={secrets?.agentProviderTokens}
+            />
           </SettingsSection>
           <SectionHint
             links={[

@@ -40,7 +40,7 @@
       "sectionDescription": "Agente de codificación AI y autenticación",
       "agentType": "Tipo de agente",
       "agentAndModel": "Agente y modelo",
-      "agentAndModelDescription": "Proveedor y modelo para todas las operaciones",
+      "agentAndModelDescription": "Default provider when a task does not select its own",
       "effort": "Esfuerzo de razonamiento",
       "effortDescription": "Razonamiento por turno en nuevas funciones (Claude Code)",
       "effortFailed": "No se pudo guardar el esfuerzo",
@@ -2084,5 +2084,20 @@
     "analyzeProject": "Analyze project",
     "analyzing": "Analyzing code and capabilities…",
     "analysisSummary": "{{files}} files analyzed · {{added}} capabilities added"
+  },
+  "providers": {
+    "title": "Providers",
+    "hint": "Keep several providers configured. Choose a provider and model for each task; the default is configured above.",
+    "default": "Default",
+    "remove": "Remove",
+    "auth": "Authentication",
+    "apiKey": "API key",
+    "configured": "Configured — leave blank to keep",
+    "enterKey": "Enter a key (saved on blur)",
+    "clearKey": "Clear key",
+    "sessionHint": "Uses the CLI’s existing login session.",
+    "select": "Choose a provider",
+    "add": "Add",
+    "failed": "Could not save provider"
   }
 }

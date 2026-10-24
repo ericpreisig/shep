@@ -6,6 +6,10 @@ import type { LoadSettingsUseCase } from '@shepai/core/application/use-cases/set
 import type { UpdateSettingsUseCase } from '@shepai/core/application/use-cases/settings/update-settings.use-case';
 import { updateSettings as updateSettingsSingleton } from '@shepai/core/infrastructure/services/settings.service';
 import type { Settings } from '@shepai/core/domain/generated/output';
+import {
+  configuredAgentProviders,
+  resolveAgentConfig,
+} from '@shepai/core/domain/shared/agent-providers';
 
 type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
@@ -56,6 +60,17 @@ export async function updateSettingsAction(
       current as unknown as Record<string, unknown>,
       partial as DeepPartial<Record<string, unknown>>
     ) as Settings;
+    if (partial.agent) {
+      const type = partial.agent.type ?? current.agent.type;
+      merged.agent = {
+        ...resolveAgentConfig(current, type),
+        ...partial.agent,
+      } as Settings['agent'];
+      merged.agentProviders = [
+        ...configuredAgentProviders(current).filter((provider) => provider.type !== type),
+        merged.agent,
+      ];
+    }
     merged.updatedAt = new Date();
 
     const updateUseCase = resolve<UpdateSettingsUseCase>('UpdateSettingsUseCase');

@@ -104,6 +104,7 @@ export interface SettingsRow extends SettingsTelemetryRow {
   agent_type: string;
   agent_auth_method: string;
   agent_token: string | null;
+  agent_providers?: string | null;
 
   // NotificationPreferences (notifications.*)
   notif_in_app_enabled: number; // Boolean stored as INTEGER
@@ -324,6 +325,7 @@ export function toDatabase(settings: Settings): SettingsRow {
     agent_type: settings.agent.type,
     agent_auth_method: settings.agent.authMethod,
     agent_token: settings.agent.token ?? null,
+    agent_providers: settings.agentProviders ? JSON.stringify(settings.agentProviders) : null,
 
     // NotificationPreferences (boolean → 0/1)
     notif_in_app_enabled: settings.notifications.inApp.enabled ? 1 : 0,
@@ -867,6 +869,9 @@ export function fromDatabase(row: SettingsRow): Settings {
       logLevel: row.sys_log_level,
     },
 
+    ...(row.agent_providers != null
+      ? { agentProviders: JSON.parse(row.agent_providers) as Settings['agentProviders'] }
+      : {}),
     // AgentConfig (NULL → undefined for optional token)
     agent: {
       // A removed agent type (aider, continue — spec 135) reads back as the default.

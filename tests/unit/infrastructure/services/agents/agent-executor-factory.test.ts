@@ -38,6 +38,29 @@ describe('AgentExecutorFactory', () => {
   });
 
   describe('createExecutor', () => {
+    it('refreshes a provider executor when its credential changes while keeping other providers cached', () => {
+      const first = factory.createExecutor(AgentType.OpenRouter, {
+        type: AgentType.OpenRouter,
+        authMethod: AgentAuthMethod.Token,
+        token: 'test-first-key',
+      });
+      const cli = factory.createExecutor(AgentType.CodexCli, {
+        type: AgentType.CodexCli,
+        authMethod: AgentAuthMethod.Session,
+      });
+      const second = factory.createExecutor(AgentType.OpenRouter, {
+        type: AgentType.OpenRouter,
+        authMethod: AgentAuthMethod.Token,
+        token: 'test-second-key',
+      });
+      expect(second).not.toBe(first);
+      expect(
+        factory.createExecutor(AgentType.CodexCli, {
+          type: AgentType.CodexCli,
+          authMethod: AgentAuthMethod.Session,
+        })
+      ).toBe(cli);
+    });
     it('should create ClaudeCodeExecutor for claude-code type', () => {
       const executor = factory.createExecutor(AgentType.ClaudeCode, defaultAuthConfig);
 

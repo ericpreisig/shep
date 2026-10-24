@@ -109,7 +109,8 @@ export function AgentSettingsSection({ agent }: AgentSettingsSectionProps) {
     if (newAuthMethod !== authMethod) {
       setAuthMethod(newAuthMethod);
     }
-    save(buildPayload({ type: newType, authMethod: newAuthMethod }));
+    setToken('');
+    save({ agent: { type: newType, authMethod: newAuthMethod } });
   }
 
   function handleAuthMethodChange(value: string) {

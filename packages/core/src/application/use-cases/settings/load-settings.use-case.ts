@@ -45,6 +45,7 @@ export interface SecretPresence {
 /** Presence summary for every credential `Settings` can hold. */
 export interface SettingsSecretPresence {
   agentToken: SecretPresence;
+  agentProviderTokens?: Record<string, SecretPresence>;
   whatsappCloudApiAccessToken: SecretPresence;
   whatsappCloudApiVerifyToken: SecretPresence;
   whatsappCloudApiAppSecret: SecretPresence;
@@ -115,6 +116,16 @@ export class LoadSettingsUseCase {
 
     const secrets: SettingsSecretPresence = {
       agentToken: describeSecret(settings.agent?.token),
+      ...(settings.agentProviders
+        ? {
+            agentProviderTokens: Object.fromEntries(
+              settings.agentProviders.map((provider) => [
+                provider.type,
+                describeSecret(provider.token),
+              ])
+            ),
+          }
+        : {}),
       whatsappCloudApiAccessToken: describeSecret(settings.whatsapp?.cloudApiAccessToken),
       whatsappCloudApiVerifyToken: describeSecret(settings.whatsapp?.cloudApiVerifyToken),
       whatsappCloudApiAppSecret: describeSecret(settings.whatsapp?.cloudApiAppSecret),
@@ -127,6 +138,14 @@ export class LoadSettingsUseCase {
     const masked: Settings = {
       ...settings,
       agent: { ...settings.agent, token: undefined },
+      ...(settings.agentProviders
+        ? {
+            agentProviders: settings.agentProviders.map((provider) => ({
+              ...provider,
+              token: undefined,
+            })),
+          }
+        : {}),
       ...(settings.whatsapp
         ? {
             whatsapp: {

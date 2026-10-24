@@ -1,0 +1,44 @@
+name: multiple-agent-providers
+relatedFeatures:
+- 143-project-analysis-autotask
+technologies:
+- TypeScript
+- React
+- SQLite
+- Codex CLI
+- OpenRouter
+relatedLinks: []
+openQuestions: []
+summary: Keep independent provider credentials available for concurrent tasks.
+phases:
+- id: phase-1
+  name: Persist provider configurations, mask secrets and preserve default changes
+  parallel: false
+  taskIds:
+  - task-1
+- id: phase-2
+  name: Resolve selected credentials in every execution path and refresh executor cache
+  parallel: false
+  taskIds:
+  - task-2
+- id: phase-3
+  name: Expose provider management in existing settings and validate concurrent choices
+  parallel: false
+  taskIds:
+  - task-3
+filesToCreate: []
+filesToModify: []
+content: '## Clean Architecture
+
+
+  TypeSpec adds Settings.agentProviders using existing AgentConfig. A domain resolver owns provider selection.
+  Settings use cases persist profiles and preserve the legacy default. Infrastructure workers, catalogs
+  and interactive sessions reuse that resolver; the existing settings section hosts provider rows.
+
+
+  ## Validation
+
+
+  RED-GREEN-REFACTOR: test independent credentials, default switching, masked browser data, persistence,
+  executor cache refresh, worker overrides and settings form behavior. Run regressions, type checks, lint,
+  production build and real browser checks.'

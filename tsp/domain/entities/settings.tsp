@@ -1285,6 +1285,9 @@ model Settings extends BaseEntity {
   @doc("AI coding agent selection and authentication")
   agent: AgentConfig;
 
+  @doc("Independent provider configurations; agent remains the default provider")
+  agentProviders?: AgentConfig[];
+
   /**
    * Notification preferences for agent lifecycle events.
    * Controls which channels (in-app, browser, desktop) are enabled

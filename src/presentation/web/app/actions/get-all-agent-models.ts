@@ -14,6 +14,7 @@ import type {
 } from '@shepai/core/application/ports/output/agents/agent-executor-factory.interface';
 import type { LoadSettingsUseCase } from '@shepai/core/application/use-cases/settings/load-settings.use-case';
 import type { AgentType, AgentConfig } from '@shepai/core/domain/generated/output';
+import { configuredAgentProviders } from '@shepai/core/domain/shared/agent-providers';
 
 export interface ModelInfo {
   id: string;
@@ -69,13 +70,13 @@ export async function getAllAgentModels(): Promise<AgentModelGroup[]> {
 
     // Load the currently-configured agent so we can pass its token to
     // catalogs that require auth (Together AI). Failures are non-fatal.
-    let activeAgent: AgentConfig | undefined;
+    let configuredAgents: AgentConfig[] = [];
     try {
       const loadSettings = resolve<LoadSettingsUseCase>('LoadSettingsUseCase');
       const settings = await loadSettings.execute();
-      activeAgent = settings.agent;
+      configuredAgents = configuredAgentProviders(settings);
     } catch {
-      activeAgent = undefined;
+      configuredAgents = [];
     }
 
     const flags = getFeatureFlags();
@@ -85,10 +86,7 @@ export async function getAllAgentModels(): Promise<AgentModelGroup[]> {
     });
     const groups = await Promise.all(
       agents.map(async (agentType) => {
-        const authConfig =
-          activeAgent && (agentType as string) === (activeAgent.type as string)
-            ? activeAgent
-            : undefined;
+        const authConfig = configuredAgents.find((config) => config.type === agentType);
         const listings = await factory.listAvailableModels(agentType as AgentType, authConfig);
         return {
           agentType: agentType as string,

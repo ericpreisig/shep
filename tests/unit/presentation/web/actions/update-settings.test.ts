@@ -67,6 +67,22 @@ describe('updateSettingsAction server action', () => {
     expect(persistedSettings.agent.authMethod).toBe(defaults.agent.authMethod);
   });
 
+  it('selects stored provider auth instead of copying the previous default key', async () => {
+    const settings = {
+      ...defaults,
+      agent: { type: 'openrouter', authMethod: 'token', token: 'router-only-test-key' },
+      agentProviders: [{ type: 'codex-cli', authMethod: 'session' }],
+    };
+    mockLoadExecute.mockResolvedValue(settings);
+    await updateSettingsAction({ agent: { type: 'codex-cli' } } as never);
+    expect(mockUpdateExecute.mock.calls[0][0].agent.token).toBeUndefined();
+    expect(mockUpdateExecute.mock.calls[0][0].agentProviders).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'openrouter', token: 'router-only-test-key' }),
+      ])
+    );
+  });
+
   it('updates the in-memory singleton after persistence', async () => {
     await updateSettingsAction({ system: { logLevel: 'debug' } });
 

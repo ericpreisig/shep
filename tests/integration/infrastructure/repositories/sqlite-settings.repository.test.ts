@@ -33,6 +33,19 @@ describe('SQLiteSettingsRepository', () => {
   let db: Database.Database;
   let repository: SQLiteSettingsRepository;
 
+  it('persists independent Codex CLI and OpenRouter configurations', async () => {
+    const settings = createTestSettings();
+    settings.agentProviders = [
+      { type: AgentType.CodexCli, authMethod: AgentAuthMethod.Session },
+      { type: AgentType.OpenRouter, authMethod: AgentAuthMethod.Token, token: 'test-router-key' },
+    ];
+    await repository.initialize(settings);
+    expect((await repository.load())?.agentProviders).toEqual(settings.agentProviders);
+    settings.agentProviders[1].token = 'rotated-test-key';
+    await repository.update(settings);
+    expect((await repository.load())?.agentProviders?.[1].token).toBe('rotated-test-key');
+  });
+
   // Sample test data
   const createTestSettings = (): Settings => ({
     id: 'singleton',

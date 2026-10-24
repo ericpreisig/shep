@@ -15,6 +15,10 @@ import { injectable, inject } from 'tsyringe';
 import type { Settings, AgentType, AgentAuthMethod } from '../../../domain/generated/output.js';
 import type { ISettingsRepository } from '../../ports/output/repositories/settings.repository.interface.js';
 import type { IAgentValidator } from '../../ports/output/agents/agent-validator.interface.js';
+import {
+  configuredAgentProviders,
+  resolveAgentConfig,
+} from '../../../domain/shared/agent-providers.js';
 
 /**
  * Input for configuring an AI coding agent.
@@ -72,10 +76,12 @@ export class ConfigureAgentUseCase {
     const updatedSettings: Settings = {
       ...settings,
       agent: {
+        ...resolveAgentConfig(settings, input.type),
         type: input.type,
         authMethod: input.authMethod,
         ...(input.token !== undefined && { token: input.token }),
       },
+      agentProviders: configuredAgentProviders(settings),
       updatedAt: new Date(),
     };
 

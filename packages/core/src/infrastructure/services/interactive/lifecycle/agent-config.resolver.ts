@@ -17,6 +17,7 @@
 import type { ISettingsProvider } from '../../../../application/ports/output/services/settings-provider.interface.js';
 import type { AgentConfig } from '../../../../domain/generated/output.js';
 import { AgentType, AgentAuthMethod } from '../../../../domain/generated/output.js';
+import { resolveAgentConfig } from '../../../../domain/shared/agent-providers.js';
 
 /** Default concurrent session cap when settings are absent or missing the override. */
 export const DEFAULT_CAP = 3;
@@ -36,9 +37,9 @@ export class AgentConfigResolver {
   }
 
   /** Resolve the auth config from settings, with a safe fallback. */
-  resolveAuthConfig(): AgentConfig {
+  resolveAuthConfig(agentType?: AgentType): AgentConfig {
     if (this.settingsProvider.has()) {
-      return this.settingsProvider.get().agent;
+      return resolveAgentConfig(this.settingsProvider.get(), agentType);
     }
     // Fallback for when settings haven't been initialized yet
     return {

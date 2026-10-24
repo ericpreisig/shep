@@ -1369,6 +1369,10 @@ export type Settings = BaseEntity & {
    */
   agent: AgentConfig;
   /**
+   * Independent provider configurations; agent remains the default provider
+   */
+  agentProviders?: AgentConfig[];
+  /**
    * Notification preferences for agent lifecycle events
    */
   notifications: NotificationPreferences;

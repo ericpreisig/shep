@@ -10,6 +10,7 @@
  */
 
 import 'reflect-metadata';
+import { resolveAgentConfig } from '../../../../domain/shared/agent-providers.js';
 import { unlinkSync } from 'node:fs';
 import { Command } from '@langchain/langgraph';
 import { initializeContainer, container } from '@/infrastructure/di/container.js';
@@ -361,7 +362,7 @@ export async function runWorker(args: WorkerArgs): Promise<void> {
   if (args.agentType) {
     log(`Creating executor from pinned agent type: ${args.agentType}`);
     const factory = container.resolve<IAgentExecutorFactory>('IAgentExecutorFactory');
-    executor = factory.createExecutor(args.agentType, settings.agent);
+    executor = factory.createExecutor(args.agentType, resolveAgentConfig(settings, args.agentType));
   } else {
     log('Creating executor from configured agent settings...');
     executor = await executorProvider.getExecutor();

@@ -40,7 +40,7 @@
       "sectionDescription": "وكيل البرمجة بالذكاء الاصطناعي والمصادقة",
       "agentType": "نوع الوكيل",
       "agentAndModel": "الوكيل والنموذج",
-      "agentAndModelDescription": "المزود والنموذج لجميع العمليات",
+      "agentAndModelDescription": "Default provider when a task does not select its own",
       "effort": "مستوى الاستدلال",
       "effortDescription": "مستوى الاستدلال لكل خطوة في الميزات الجديدة (Claude Code)",
       "effortFailed": "فشل حفظ مستوى الجهد",
@@ -2084,5 +2084,20 @@
     "analyzeProject": "Analyze project",
     "analyzing": "Analyzing code and capabilities…",
     "analysisSummary": "{{files}} files analyzed · {{added}} capabilities added"
+  },
+  "providers": {
+    "title": "Providers",
+    "hint": "Keep several providers configured. Choose a provider and model for each task; the default is configured above.",
+    "default": "Default",
+    "remove": "Remove",
+    "auth": "Authentication",
+    "apiKey": "API key",
+    "configured": "Configured — leave blank to keep",
+    "enterKey": "Enter a key (saved on blur)",
+    "clearKey": "Clear key",
+    "sessionHint": "Uses the CLI’s existing login session.",
+    "select": "Choose a provider",
+    "add": "Add",
+    "failed": "Could not save provider"
   }
 }

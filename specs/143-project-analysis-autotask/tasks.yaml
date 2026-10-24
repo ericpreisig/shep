@@ -44,7 +44,7 @@ tasks:
 - id: task-3
   title: Expose source analysis and AutoTask, verify real workflows and push verified commits
   description: Expose source analysis and AutoTask, verify real workflows and push verified commits
-  state: InProgress
+  state: Done
   dependencies:
   - task-2
   acceptanceCriteria:

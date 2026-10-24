@@ -9,6 +9,7 @@ import type {
 } from '../../../../application/ports/output/agents/structured-agent-caller.interface.js';
 import { StructuredCallError } from '../../../../application/ports/output/agents/structured-call-error.js';
 import { getSettings } from '../../settings.service.js';
+import { resolveAgentConfig } from '../../../../domain/shared/agent-providers.js';
 import { DEFAULT_AGENT_CALL_TIMEOUT_MS } from './agent-timeouts.js';
 
 /**
@@ -36,7 +37,10 @@ export class StructuredAgentCallerService implements IStructuredAgentCaller {
     let executor: IAgentExecutor;
     if (options.agentType) {
       const settings = getSettings();
-      executor = this.executorFactory.createExecutor(options.agentType, settings.agent);
+      executor = this.executorFactory.createExecutor(
+        options.agentType,
+        resolveAgentConfig(settings, options.agentType)
+      );
     } else {
       executor = await this.executorProvider.getExecutor();
     }

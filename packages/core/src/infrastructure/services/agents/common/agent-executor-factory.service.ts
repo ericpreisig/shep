@@ -92,7 +92,7 @@ export type ExternalExecutorBuilders = Partial<
  * to avoid unnecessary re-creation of stateless executors.
  */
 export class AgentExecutorFactory implements IAgentExecutorFactory {
-  private readonly cache = new Map<string, IAgentExecutor>();
+  private readonly cache = new Map<string, { auth: string; executor: IAgentExecutor }>();
   private readonly catalogs: ModelCatalogRegistry;
 
   /**
@@ -120,7 +120,8 @@ export class AgentExecutorFactory implements IAgentExecutorFactory {
   createExecutor(agentType: AgentType, _authConfig: AgentConfig): IAgentExecutor {
     const key = agentType as string;
     const cached = this.cache.get(key);
-    if (cached) return cached;
+    const auth = JSON.stringify(_authConfig);
+    if (cached?.auth === auth) return cached.executor;
 
     let executor: IAgentExecutor;
     switch (key) {
@@ -172,7 +173,7 @@ export class AgentExecutorFactory implements IAgentExecutorFactory {
         );
     }
 
-    this.cache.set(key, executor);
+    this.cache.set(key, { auth, executor });
     return executor;
   }
 

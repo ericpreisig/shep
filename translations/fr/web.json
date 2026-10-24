@@ -40,7 +40,7 @@
       "sectionDescription": "Agent de codage IA et authentification",
       "agentType": "Type d'agent",
       "agentAndModel": "Agent et modèle",
-      "agentAndModelDescription": "Fournisseur et modèle pour toutes les opérations",
+      "agentAndModelDescription": "Provider par défaut quand la tâche ne choisit pas son propre moteur",
       "effort": "Effort de raisonnement",
       "effortDescription": "Raisonnement par tour des nouvelles fonctions (Claude Code)",
       "effortFailed": "Échec de l'enregistrement de l'effort",
@@ -2084,5 +2084,20 @@
     "analyzeProject": "Analyser le projet",
     "analyzing": "Analyse du code et des fonctionnalités…",
     "analysisSummary": "{{files}} fichiers analysés · {{added}} fonctionnalités ajoutées"
+  },
+  "providers": {
+    "title": "Providers",
+    "hint": "Garde plusieurs providers configurés. Choisis le provider et le modèle sur chaque tâche ; le provider par défaut se règle ci-dessus.",
+    "default": "Par défaut",
+    "remove": "Retirer",
+    "auth": "Authentification",
+    "apiKey": "Clé API",
+    "configured": "Configurée — laisser vide pour conserver",
+    "enterKey": "Saisir une clé (enregistrement en quittant le champ)",
+    "clearKey": "Effacer la clé",
+    "sessionHint": "Utilise la session de connexion existante du CLI.",
+    "select": "Choisir un provider",
+    "add": "Ajouter",
+    "failed": "Impossible d’enregistrer le provider"
   }
 }

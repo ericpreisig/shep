@@ -1,0 +1,66 @@
+name: multiple-agent-providers
+relatedFeatures:
+- 143-project-analysis-autotask
+technologies:
+- TypeScript
+- React
+- SQLite
+- Codex CLI
+- OpenRouter
+relatedLinks: []
+openQuestions: []
+summary: Keep independent provider credentials available for concurrent tasks.
+tasks:
+- id: task-1
+  title: Persist provider configurations, mask secrets and preserve default changes
+  description: Persist provider configurations, mask secrets and preserve default changes
+  state: Done
+  dependencies: []
+  acceptanceCriteria:
+  - Persist provider configurations, mask secrets and preserve default changes
+  tdd:
+    red:
+    - Add failing behavioral tests.
+    green:
+    - Extend existing settings and executor seams.
+    refactor:
+    - Keep one provider resolver and no duplicate credential handling.
+  estimatedEffort: 2h
+- id: task-2
+  title: Resolve selected credentials in every execution path and refresh executor cache
+  description: Resolve selected credentials in every execution path and refresh executor cache
+  state: Done
+  dependencies:
+  - task-1
+  acceptanceCriteria:
+  - Resolve selected credentials in every execution path and refresh executor cache
+  tdd:
+    red:
+    - Add failing behavioral tests.
+    green:
+    - Extend existing settings and executor seams.
+    refactor:
+    - Keep one provider resolver and no duplicate credential handling.
+  estimatedEffort: 2h
+- id: task-3
+  title: Expose provider management in existing settings and validate concurrent choices
+  description: Expose provider management in existing settings and validate concurrent choices
+  state: InProgress
+  dependencies:
+  - task-2
+  acceptanceCriteria:
+  - Expose provider management in existing settings and validate concurrent choices
+  tdd:
+    red:
+    - Add failing behavioral tests.
+    green:
+    - Extend existing settings and executor seams.
+    refactor:
+    - Keep one provider resolver and no duplicate credential handling.
+  estimatedEffort: 2h
+totalEstimate: 6h
+content: '## Acceptance Checklist
+
+
+  Persist, isolate and mask provider credentials. Preserve other configured providers when selecting a
+  default. Validate the settings UI and per-feature picker.'

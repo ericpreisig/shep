@@ -9,6 +9,10 @@
 import { injectable, inject } from 'tsyringe';
 import type { Settings, AgentType } from '../../../domain/generated/output.js';
 import type { ISettingsRepository } from '../../ports/output/repositories/settings.repository.interface.js';
+import {
+  configuredAgentProviders,
+  resolveAgentConfig,
+} from '../../../domain/shared/agent-providers.js';
 
 export interface CompleteWebOnboardingInput {
   agentType: AgentType;
@@ -30,10 +34,8 @@ export class CompleteWebOnboardingUseCase {
 
     const updatedSettings: Settings = {
       ...settings,
-      agent: {
-        ...settings.agent,
-        type: input.agentType,
-      },
+      agent: resolveAgentConfig(settings, input.agentType),
+      agentProviders: configuredAgentProviders(settings),
       // Spread first: only the default model changes here. Rebuilding
       // `models` from scratch would drop the saved effort and adaptive tiers.
       models: {

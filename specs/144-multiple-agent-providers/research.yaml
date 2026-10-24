@@ -1,0 +1,30 @@
+name: multiple-agent-providers
+relatedFeatures:
+- 143-project-analysis-autotask
+technologies:
+- TypeScript
+- React
+- SQLite
+- Codex CLI
+- OpenRouter
+relatedLinks: []
+openQuestions: []
+summary: Keep independent provider credentials available for concurrent tasks.
+decisions:
+- title: Provider storage
+  chosen: Optional array of the existing AgentConfig on Settings, preserving legacy agent as default.
+  rejected:
+  - Separate credentials service
+  - Multiple account profiles per provider
+  rationale: Reuse the supported executor catalog and existing settings persistence.
+- title: Execution and browser boundaries
+  chosen: One domain resolver for the selected type; masked settings plus write-only token inputs.
+  rejected:
+  - Reuse the default token for overrides
+  rationale: Prevent credential crossover while retaining current CLI login sessions.
+content: '## Existing behavior
+
+
+  The executor factory and per-feature picker already support Codex CLI and OpenRouter. Auth storage is
+  singular, worker overrides receive settings.agent, and executor caching ignores credential changes.
+  Extend these seams rather than build another execution path.'

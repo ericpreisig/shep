@@ -14,6 +14,10 @@ import type {
   EditorType,
 } from '../../../domain/generated/output.js';
 import type { ISettingsRepository } from '../../ports/output/repositories/settings.repository.interface.js';
+import {
+  configuredAgentProviders,
+  resolveAgentConfig,
+} from '../../../domain/shared/agent-providers.js';
 
 /**
  * Input for completing onboarding.
@@ -55,10 +59,12 @@ export class CompleteOnboardingUseCase {
     const updatedSettings: Settings = {
       ...settings,
       agent: {
+        ...resolveAgentConfig(settings, input.agent.type),
         type: input.agent.type,
         authMethod: input.agent.authMethod,
         ...(input.agent.token !== undefined && { token: input.agent.token }),
       },
+      agentProviders: configuredAgentProviders(settings),
       environment: {
         ...settings.environment,
         defaultEditor: input.ide as EditorType,

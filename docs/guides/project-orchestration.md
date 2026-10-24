@@ -15,6 +15,12 @@ SHEP_HOME="$HOME/.shep-fork" node dist/src/presentation/cli/index.js ui --port 4
 
 `SHEP_HOME` chooses the database, settings and worktree storage. A separate home is useful for trying the fork alongside another installation. Configure **Settings → Agent** to use **Codex CLI** and authenticate the existing `codex` executable normally. Chat and classification use the configured agent and model.
 
+## Multiple providers
+
+In **Settings → Agent → Providers**, add providers such as **OpenRouter** alongside **Codex CLI**. Each provider keeps its own authentication configuration. The default agent/model picker chooses the fallback provider; adding another provider does not replace it. CLI providers use their existing login session. Enter an API provider's key in its password field; leaving the field blank keeps the stored key, while **Clear key** removes it.
+
+Use the existing **Agent and model** picker when creating or editing a task to select either provider. Metadata, execution workers and model catalogs resolve that provider's own configuration. Tasks pinned to different providers can run concurrently within the existing capacity limit. Switching the default retains the other providers and their keys; changing a key invalidates that provider's cached executor. Stored keys are stripped from browser settings payloads.
+
 ## Prerequisites
 
 Select multiple **Parent tasks** in the creation drawer. In the task's **Overview**, **Prerequisite tasks** remains editable while the task is Pending or Blocked and its worker has never started. Save the selection to replace its complete prerequisite list.
