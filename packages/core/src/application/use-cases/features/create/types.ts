@@ -44,6 +44,11 @@ export interface CreateFeatureInput {
   commitEvidence?: boolean;
   /** When true, create feature in Pending state — fully initialized but agent not spawned. */
   pending?: boolean;
+  /** Plan dependencies and optional sub-features before executing. */
+  autoTask?: boolean;
+  /** Internal stable identity and provenance for retryable planned children. */
+  featureId?: string;
+  autoTaskSourceFeatureId?: string;
   /** Optional agent type override (overrides settings.agent.type). */
   agentType?: string;
   /** Optional model identifier forwarded to the agent executor for this invocation. */

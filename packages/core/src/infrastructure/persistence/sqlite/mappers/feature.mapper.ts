@@ -88,6 +88,7 @@ export interface FeatureRow {
   parent_id: string | null;
   parent_ids?: string | null;
   discovery?: string | null;
+  auto_task?: string | null;
   execution_corrections?: string | null;
   execution_corrections_applied?: number | null;
   // Agent coordination decision (JSON, spec 141, migration 173)
@@ -177,6 +178,7 @@ export function toDatabase(feature: Feature): FeatureRow {
     parent_id: featureParentIds(feature)[0] ?? null,
     parent_ids: JSON.stringify(featureParentIds(feature)),
     discovery: feature.discovery ? JSON.stringify(feature.discovery) : null,
+    auto_task: feature.autoTask ? JSON.stringify(feature.autoTask) : null,
     execution_corrections: JSON.stringify(feature.executionCorrections ?? []),
     execution_corrections_applied: feature.executionCorrectionsApplied ?? 0,
     coordination: feature.coordination ? JSON.stringify(feature.coordination) : null,
@@ -281,6 +283,7 @@ export function fromDatabase(row: FeatureRow): Feature {
     ...(row.parent_id != null && { parentId: row.parent_id }),
     ...(row.parent_ids != null && { parentIds: JSON.parse(row.parent_ids) as string[] }),
     ...(row.discovery != null && { discovery: JSON.parse(row.discovery) as Feature['discovery'] }),
+    ...(row.auto_task != null && { autoTask: JSON.parse(row.auto_task) as Feature['autoTask'] }),
     ...(row.execution_corrections != null && {
       executionCorrections: JSON.parse(row.execution_corrections) as string[],
     }),

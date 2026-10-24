@@ -2,6 +2,8 @@
 
 import { resolve } from '@/lib/server-container';
 import type { CreateFeatureUseCase } from '@shepai/core/application/use-cases/features/create/create-feature.use-case';
+import type { ExpandAutoTaskUseCase } from '@shepai/core/application/use-cases/features/expand-auto-task.use-case';
+import type { StartFeatureUseCase } from '@shepai/core/application/use-cases/features/start-feature.use-case';
 import type { Feature } from '@shepai/core/domain/generated/output';
 import { type BuildMode } from '@shepai/core/domain/generated/output';
 import { composeUserInput } from './compose-user-input';
@@ -48,6 +50,7 @@ interface CreateFeatureInput {
   fast?: boolean;
   /** When true, create the feature in pending state (no agent spawned). */
   pending?: boolean;
+  autoTask?: boolean;
   /** Fork repo and create PR to upstream at merge time. */
   forkAndPr?: boolean;
   /** Commit specs/evidences into the repo (default: true, auto-false when forkAndPr). */
@@ -92,6 +95,7 @@ export async function createFeature(
     buildMode,
     fast,
     pending,
+    autoTask,
     forkAndPr,
     commitSpecs,
     ciWatchEnabled,
@@ -137,6 +141,7 @@ export async function createFeature(
       ...(buildMode ? { buildMode } : {}),
       ...(fast != null ? { fast } : {}),
       ...(pending ? { pending } : {}),
+      ...(autoTask ? { autoTask } : {}),
       ...(forkAndPr != null ? { forkAndPr } : {}),
       ...(commitSpecs != null ? { commitSpecs } : {}),
       ...(ciWatchEnabled != null ? { ciWatchEnabled } : {}),
@@ -167,6 +172,7 @@ export async function createFeature(
           ...(buildMode ? { buildMode } : {}),
           ...(fast != null ? { fast } : {}),
           ...(pending ? { pending } : {}),
+          ...(autoTask ? { autoTask } : {}),
           ...(forkAndPr != null ? { forkAndPr } : {}),
           ...(commitSpecs != null ? { commitSpecs } : {}),
           ...(ciWatchEnabled != null ? { ciWatchEnabled } : {}),
@@ -183,6 +189,11 @@ export async function createFeature(
         },
         shouldSpawn
       )
+      .then(async () => {
+        if (!autoTask) return;
+        await resolve<ExpandAutoTaskUseCase>('ExpandAutoTaskUseCase').execute(feature.id);
+        if (!pending) await resolve<StartFeatureUseCase>('StartFeatureUseCase').execute(feature.id);
+      })
       .catch((err: unknown) => {
         // eslint-disable-next-line no-console
         console.error('[createFeature] initializeAndSpawn failed:', err);

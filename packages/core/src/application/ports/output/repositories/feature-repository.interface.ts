@@ -11,6 +11,7 @@
 
 import type {
   AgentRunStatus,
+  AutoTaskPlan,
   Feature,
   SdlcLifecycle,
 } from '../../../../domain/generated/output.js';
@@ -176,6 +177,13 @@ export interface IFeatureRepository {
 
   /** Atomic human dependency edit, refused once a worker has started. */
   updateDependenciesBeforeStart(featureId: string, parentIds: string[]): Promise<boolean>;
+
+  /** Cross-process planning lease; only an unstarted AutoTask may be claimed. */
+  claimAutoTaskPlanning(featureId: string, token: string, now: number): Promise<boolean>;
+  /** Save a draft before materialization; a ready plan releases the lease. */
+  saveAutoTaskPlan(featureId: string, token: string, plan: AutoTaskPlan): Promise<boolean>;
+  /** Retain the draft and release the lease so a retry can finish it. */
+  failAutoTaskPlanning(featureId: string, token: string, error: string): Promise<void>;
 
   /**
    * Returns all direct (non-recursive) children of the given parent feature ID.

@@ -1828,6 +1828,35 @@ export type FeatureDiscovery = {
   evidencePaths: string[];
   analyzedAt: any;
 };
+
+/**
+ * A deferred feature in an automatically generated dependency plan
+ */
+export type AutoTaskPlannedFeature = {
+  id: UUID;
+  name: string;
+  description: string;
+  parentIds: UUID[];
+};
+
+/**
+ * Durable AutoTask plan, saved before any child is created
+ */
+export type AutoTaskPlan = {
+  tasks: AutoTaskPlannedFeature[];
+  parentIds: UUID[];
+  ready: boolean;
+};
+
+/**
+ * Opt-in planning and child provenance; separate from prerequisite edges
+ */
+export type AutoTaskState = {
+  enabled: boolean;
+  sourceFeatureId?: UUID;
+  plan?: AutoTaskPlan;
+  error?: string;
+};
 export enum CoordinationAction {
   Defer = 'defer',
   Continue = 'continue',
@@ -2033,6 +2062,10 @@ export type Feature = SoftDeletableEntity & {
    * Evidence for a capability discovered by read-only project analysis
    */
   discovery?: FeatureDiscovery;
+  /**
+   * Automatic sub-feature planning and durable retry state
+   */
+  autoTask?: AutoTaskState;
   /**
    * Durable user corrections applied when restarting this feature's worker
    */

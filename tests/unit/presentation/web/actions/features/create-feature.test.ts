@@ -2,14 +2,21 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BuildMode } from '@shepai/core/domain/generated/output';
 
 const mockCreateRecord = vi.fn();
+const mockExpand = vi.fn().mockResolvedValue(undefined);
+const mockStart = vi.fn().mockResolvedValue(undefined);
 const mockInitializeAndSpawn = vi
   .fn()
   .mockResolvedValue({ warning: undefined, updatedFeature: {} });
 vi.mock('../../../../../../src/presentation/web/lib/server-container.js', () => ({
-  resolve: () => ({
-    createRecord: mockCreateRecord,
-    initializeAndSpawn: mockInitializeAndSpawn,
-  }),
+  resolve: (token: string) =>
+    token === 'ExpandAutoTaskUseCase'
+      ? { execute: mockExpand }
+      : token === 'StartFeatureUseCase'
+        ? { execute: mockStart }
+        : {
+            createRecord: mockCreateRecord,
+            initializeAndSpawn: mockInitializeAndSpawn,
+          },
 }));
 
 vi.mock('@shepai/core/application/use-cases/features/create/create-feature.use-case', () => ({
@@ -26,6 +33,22 @@ describe('createFeature server action', () => {
   });
 
   // --- Success paths ---
+  it.each([true, false])(
+    'plans AutoTask but honors deferred execution: pending=%s',
+    async (pending) => {
+      mockCreateRecord.mockResolvedValue({ feature: { id: 'auto' }, shouldSpawn: false });
+      await createFeature({
+        description: 'Build trading',
+        repositoryPath: '/repo',
+        autoTask: true,
+        pending,
+      });
+      expect(mockCreateRecord).toHaveBeenCalledWith(expect.objectContaining({ autoTask: true }));
+      await vi.waitFor(() => expect(mockExpand).toHaveBeenCalledWith('auto'));
+      if (pending) expect(mockStart).not.toHaveBeenCalled();
+      else await vi.waitFor(() => expect(mockStart).toHaveBeenCalledWith('auto'));
+    }
+  );
 
   it('returns feature on success', async () => {
     const feature = { id: '1', name: 'My Feature', slug: 'my-feature' };

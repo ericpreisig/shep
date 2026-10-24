@@ -17,6 +17,8 @@ import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { container } from '@/infrastructure/di/container.js';
 import { CreateFeatureUseCase } from '@/application/use-cases/features/create/create-feature.use-case.js';
+import { ExpandAutoTaskUseCase } from '@/application/use-cases/features/expand-auto-task.use-case.js';
+import { StartFeatureUseCase } from '@/application/use-cases/features/start-feature.use-case.js';
 import { CreateFeatureFromRemoteUseCase } from '@/application/use-cases/features/create/create-feature-from-remote.use-case.js';
 import type { ApprovalGates, Feature } from '@/domain/generated/output.js';
 import { SdlcLifecycle, BuildMode } from '@/domain/generated/output.js';
@@ -50,6 +52,7 @@ interface NewOptions {
   fast?: boolean;
   explore?: boolean;
   pending?: boolean;
+  autoTask?: boolean;
   model?: string;
   effort?: string;
   attach?: string[];
@@ -119,6 +122,7 @@ export function createNewCommand(): Command {
     .option('--allow-all', t('cli:commands.feat.new.allowAllOption'))
     .option('--parent <fid>', t('cli:commands.feat.new.parentOption'))
     .option('--pending', t('cli:commands.feat.new.pendingOption'))
+    .option('--auto-task', 'Plan sub-features and dependencies against the existing project')
     .option('--fast', t('cli:commands.feat.new.fastOption'))
     .option('--no-fast', t('cli:commands.feat.new.noFastOption'))
     .option('--explore', t('cli:commands.feat.new.exploreOption'))
@@ -235,6 +239,7 @@ Examples:
           openPr,
           ...(parentId !== undefined && { parentId }),
           ...(options.pending && { pending: true }),
+          ...(options.autoTask && { autoTask: true }),
           ...(fast && { fast: true }),
           buildMode,
           ...(options.model !== undefined && { model: options.model }),
@@ -272,6 +277,16 @@ Examples:
           );
         }
 
+        if (options.autoTask) {
+          await spinner('Planning AutoTask dependencies…', () =>
+            container.resolve(ExpandAutoTaskUseCase).execute(result.feature.id)
+          );
+          if (!options.pending)
+            result = {
+              ...result,
+              ...(await container.resolve(StartFeatureUseCase).execute(result.feature.id)),
+            };
+        }
         const { feature, warning } = result;
         repoPath = options.remote ? feature.repositoryPath : (options.repo ?? process.cwd());
         const repoHash = createHash('sha256').update(repoPath).digest('hex').slice(0, 16);

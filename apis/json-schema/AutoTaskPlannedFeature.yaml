@@ -1,0 +1,20 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: AutoTaskPlannedFeature.yaml
+type: object
+properties:
+  id:
+    $ref: UUID.yaml
+  name:
+    type: string
+  description:
+    type: string
+  parentIds:
+    type: array
+    items:
+      $ref: UUID.yaml
+required:
+  - id
+  - name
+  - description
+  - parentIds
+description: A deferred feature in an automatically generated dependency plan

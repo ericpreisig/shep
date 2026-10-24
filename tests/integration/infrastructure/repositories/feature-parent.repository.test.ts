@@ -97,6 +97,33 @@ describe('Feature parent_id migration and findByParentId', () => {
   });
 
   describe('parentId mapper round-trip', () => {
+    it('serializes AutoTask planning, resumes drafts and refuses worker admission until ready', async () => {
+      await repository.create(
+        createTestFeature({ lifecycle: SdlcLifecycle.Pending, autoTask: { enabled: true } })
+      );
+      const claim = {
+        featureId: 'feat-1',
+        targetLifecycle: SdlcLifecycle.Requirements,
+        updatedAt: new Date(),
+      };
+      expect(await repository.claimForStart(claim)).toBe(false);
+      expect(await repository.claimAutoTaskPlanning('feat-1', 'one', Date.now())).toBe(true);
+      expect(await repository.claimAutoTaskPlanning('feat-1', 'two', Date.now())).toBe(false);
+      const draft = { tasks: [], parentIds: [], ready: false };
+      expect(await repository.saveAutoTaskPlan('feat-1', 'two', draft)).toBe(false);
+      expect(await repository.saveAutoTaskPlan('feat-1', 'one', draft)).toBe(true);
+      await repository.failAutoTaskPlanning('feat-1', 'one', 'temporary failure');
+      expect((await repository.findById('feat-1'))?.autoTask).toMatchObject({
+        plan: draft,
+        error: 'temporary failure',
+      });
+      expect(await repository.claimAutoTaskPlanning('feat-1', 'two', Date.now())).toBe(true);
+      expect(await repository.saveAutoTaskPlan('feat-1', 'two', { ...draft, ready: true })).toBe(
+        true
+      );
+      expect(await repository.claimAutoTaskPlanning('feat-1', 'three', Date.now())).toBe(false);
+      expect(await repository.claimForStart(claim)).toBe(true);
+    });
     it('persists source-analysis provenance without creating an execution', async () => {
       await repository.create(
         createTestFeature({

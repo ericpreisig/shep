@@ -14,7 +14,12 @@ import type {
   FeatureListFilters,
   FeatureStartClaim,
 } from '../../application/ports/output/repositories/feature-repository.interface.js';
-import type { AgentRunStatus, Feature, SdlcLifecycle } from '../../domain/generated/output.js';
+import type {
+  AgentRunStatus,
+  AutoTaskPlan,
+  Feature,
+  SdlcLifecycle,
+} from '../../domain/generated/output.js';
 import { UNLIMITED_PARALLEL_FEATURES } from '../../domain/shared/parallel-feature-limit.js';
 import { normalizeRepositoryPath } from '../../domain/shared/repository-path.js';
 import {
@@ -88,7 +93,7 @@ export class SQLiteFeatureRepository implements IFeatureRepository {
         pr_url, pr_number, pr_status, commit_hash, ci_status,
         ci_fix_attempts, ci_fix_history, pr_mergeable,
         upstream_pr_url, upstream_pr_number, upstream_pr_status,
-        parent_id, parent_ids, discovery, execution_corrections, execution_corrections_applied, coordination, previous_lifecycle, attachments,
+        parent_id, parent_ids, discovery, auto_task, execution_corrections, execution_corrections_applied, coordination, previous_lifecycle, attachments,
         inject_skills, injected_skills, bedrock_enabled,
         active_plugins,
         source_agent_session_id, source_agent_type,
@@ -107,7 +112,7 @@ export class SQLiteFeatureRepository implements IFeatureRepository {
         @pr_url, @pr_number, @pr_status, @commit_hash, @ci_status,
         @ci_fix_attempts, @ci_fix_history, @pr_mergeable,
         @upstream_pr_url, @upstream_pr_number, @upstream_pr_status,
-        @parent_id, @parent_ids, @discovery, @execution_corrections, @execution_corrections_applied, @coordination, @previous_lifecycle, @attachments,
+        @parent_id, @parent_ids, @discovery, @auto_task, @execution_corrections, @execution_corrections_applied, @coordination, @previous_lifecycle, @attachments,
         @inject_skills, @injected_skills, @bedrock_enabled,
         @active_plugins,
         @source_agent_session_id, @source_agent_type,
@@ -257,6 +262,59 @@ export class SQLiteFeatureRepository implements IFeatureRepository {
     return result.changes === 1;
   }
 
+  async claimAutoTaskPlanning(featureId: string, token: string, now: number): Promise<boolean> {
+    return (
+      this.db
+        .prepare(
+          `
+      UPDATE features SET auto_task_lease = @token, auto_task_lease_at = @now,
+        auto_task = json_remove(auto_task, '$.error'), updated_at = @now
+      WHERE id = @id AND deleted_at IS NULL AND lifecycle IN ('Pending', 'Blocked')
+        AND json_extract(auto_task, '$.enabled') = 1
+        AND COALESCE(json_extract(auto_task, '$.plan.ready'), 0) = 0
+        AND (auto_task_lease IS NULL OR auto_task_lease_at < @expired)
+        AND NOT EXISTS (SELECT 1 FROM agent_runs WHERE agent_runs.id = features.agent_run_id
+          AND (agent_runs.started_at IS NOT NULL OR agent_runs.status != 'pending'))
+    `
+        )
+        .run({ id: featureId, token, now, expired: now - 15 * 60_000 }).changes === 1
+    );
+  }
+
+  async saveAutoTaskPlan(featureId: string, token: string, plan: AutoTaskPlan): Promise<boolean> {
+    return (
+      this.db
+        .prepare(
+          `
+      UPDATE features SET auto_task = json_set(json_remove(auto_task, '$.error'), '$.plan', json(@plan)),
+        auto_task_lease = CASE WHEN @ready = 1 THEN NULL ELSE auto_task_lease END,
+        auto_task_lease_at = @now, updated_at = @now
+      WHERE id = @id AND auto_task_lease = @token AND deleted_at IS NULL
+        AND lifecycle IN ('Pending', 'Blocked')
+    `
+        )
+        .run({
+          id: featureId,
+          token,
+          plan: JSON.stringify(plan),
+          ready: plan.ready ? 1 : 0,
+          now: Date.now(),
+        }).changes === 1
+    );
+  }
+
+  async failAutoTaskPlanning(featureId: string, token: string, error: string): Promise<void> {
+    this.db
+      .prepare(
+        `
+      UPDATE features SET auto_task = json_set(auto_task, '$.error', @error),
+        auto_task_lease = NULL, auto_task_lease_at = NULL, updated_at = @now
+      WHERE id = @id AND auto_task_lease = @token
+    `
+      )
+      .run({ id: featureId, token, error, now: Date.now() });
+  }
+
   async countByLifecycles(
     lifecycles: SdlcLifecycle[],
     options?: CountByLifecyclesOptions
@@ -328,6 +386,7 @@ export class SQLiteFeatureRepository implements IFeatureRepository {
         parent_id = @parent_id,
         parent_ids = @parent_ids,
         discovery = @discovery,
+        auto_task = @auto_task,
         execution_corrections = @execution_corrections,
         execution_corrections_applied = @execution_corrections_applied,
         coordination = @coordination,
@@ -355,6 +414,8 @@ export class SQLiteFeatureRepository implements IFeatureRepository {
     // so the check and the write are the same statement and no other process
     // can slip between them.
     const conditions = ['id = @id', 'deleted_at IS NULL'];
+    conditions.push(`(COALESCE(json_extract(auto_task, '$.enabled'), 0) != 1
+      OR json_extract(auto_task, '$.plan.ready') = 1)`);
     // The human dependency edit and start must serialize in SQLite. Re-check
     // every prerequisite inside the same write that authorizes the worker.
     conditions.push(`NOT EXISTS (

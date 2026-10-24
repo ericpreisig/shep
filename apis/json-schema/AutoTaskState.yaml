@@ -1,0 +1,15 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: AutoTaskState.yaml
+type: object
+properties:
+  enabled:
+    type: boolean
+  sourceFeatureId:
+    $ref: UUID.yaml
+  plan:
+    $ref: AutoTaskPlan.yaml
+  error:
+    type: string
+required:
+  - enabled
+description: Opt-in planning and child provenance; separate from prerequisite edges

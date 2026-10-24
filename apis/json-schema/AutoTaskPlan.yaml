@@ -1,0 +1,19 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: AutoTaskPlan.yaml
+type: object
+properties:
+  tasks:
+    type: array
+    items:
+      $ref: AutoTaskPlannedFeature.yaml
+  parentIds:
+    type: array
+    items:
+      $ref: UUID.yaml
+  ready:
+    type: boolean
+required:
+  - tasks
+  - parentIds
+  - ready
+description: Durable AutoTask plan, saved before any child is created

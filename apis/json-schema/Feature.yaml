@@ -121,6 +121,9 @@ properties:
   discovery:
     $ref: FeatureDiscovery.yaml
     description: Evidence for a capability discovered by read-only project analysis
+  autoTask:
+    $ref: AutoTaskState.yaml
+    description: Automatic sub-feature planning and durable retry state
   executionCorrections:
     type: array
     items:

@@ -26,16 +26,13 @@ tasks:
     - Retain focused regression coverage and remove duplication.
   estimatedEffort: 3h
 - id: task-2
-  title: Persist validated AutoTask plans, materialize children and use existing start
-    gates
-  description: Persist validated AutoTask plans, materialize children and use existing
-    start gates
-  state: InProgress
+  title: Persist validated AutoTask plans, materialize children and use existing start gates
+  description: Persist validated AutoTask plans, materialize children and use existing start gates
+  state: Done
   dependencies:
   - task-1
   acceptanceCriteria:
-  - Persist validated AutoTask plans, materialize children and use existing start
-    gates
+  - Persist validated AutoTask plans, materialize children and use existing start gates
   tdd:
     red:
     - Add failing behavioral tests.
@@ -45,11 +42,9 @@ tasks:
     - Retain focused regression coverage and remove duplication.
   estimatedEffort: 3h
 - id: task-3
-  title: Expose source analysis and AutoTask, verify real workflows and push verified
-    commits
-  description: Expose source analysis and AutoTask, verify real workflows and push
-    verified commits
-  state: Todo
+  title: Expose source analysis and AutoTask, verify real workflows and push verified commits
+  description: Expose source analysis and AutoTask, verify real workflows and push verified commits
+  state: InProgress
   dependencies:
   - task-2
   acceptanceCriteria:

@@ -141,6 +141,7 @@ import { GetWorkerLogPathUseCase } from '../../../application/use-cases/logs/get
 import { DeleteFeatureUseCase } from '../../../application/use-cases/features/delete-feature.use-case.js';
 import { ResumeFeatureUseCase } from '../../../application/use-cases/features/resume-feature.use-case.js';
 import { StartFeatureUseCase } from '../../../application/use-cases/features/start-feature.use-case.js';
+import { ExpandAutoTaskUseCase } from '../../../application/use-cases/features/expand-auto-task.use-case.js';
 import { UpdateFeaturePinnedConfigUseCase } from '../../../application/use-cases/features/update-feature-pinned-config.use-case.js';
 import { AdoptBranchUseCase } from '../../../application/use-cases/features/adopt-branch.use-case.js';
 import { PromoteExplorationUseCase } from '../../../application/use-cases/features/promote/promote-exploration.use-case.js';
@@ -336,6 +337,10 @@ export function registerUseCases(container: DependencyContainer): void {
   container.registerSingleton(DeleteFeatureUseCase);
   container.registerSingleton(ResumeFeatureUseCase);
   container.registerSingleton(StartFeatureUseCase);
+  container.registerSingleton(ExpandAutoTaskUseCase);
+  container.register('ExpandAutoTaskUseCase', {
+    useFactory: (c) => c.resolve(ExpandAutoTaskUseCase),
+  });
   container.registerSingleton(UpdateFeaturePinnedConfigUseCase);
   container.registerSingleton(AdoptBranchUseCase);
   container.registerSingleton(PromoteExplorationUseCase);

@@ -125,6 +125,8 @@ export class CreateFeatureUseCase {
    * No AI calls, no git operations — just DB writes.
    */
   async createRecord(input: CreateFeatureInput): Promise<CreateRecordResult> {
+    // AutoTask must finish planning before any worker can be admitted.
+    if (input.autoTask) input = { ...input, pending: true };
     // Resolve the effective build mode. When the caller does not specify one,
     // we derive a sensible default from the legacy `fast` flag so existing
     // callers (web action / CLI) continue to compile and behave identically.
@@ -252,7 +254,7 @@ export class CreateFeatureUseCase {
 
     const featureName = input.name ?? input.userInput.slice(0, 100);
     const runId = randomUUID();
-    const featureId = randomUUID();
+    const featureId = input.featureId ?? randomUUID();
 
     // Use the feature ID as a temporary slug so it never collides with the
     // AI-generated slug in initializeAndSpawn() → resolveUniqueSlug().
@@ -269,6 +271,11 @@ export class CreateFeatureUseCase {
       relatedArtifacts: [],
       buildMode: effectiveBuildMode,
       fast: isFastMode,
+      ...(input.autoTask
+        ? { autoTask: { enabled: true } }
+        : input.autoTaskSourceFeatureId
+          ? { autoTask: { enabled: false, sourceFeatureId: input.autoTaskSourceFeatureId } }
+          : {}),
       ...(applicationId ? { applicationId } : {}),
       push: input.push ?? false,
       openPr: input.openPr ?? false,

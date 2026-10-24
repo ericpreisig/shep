@@ -173,6 +173,48 @@ describe('StartFeatureUseCase', () => {
   // Feature not found
   // -------------------------------------------------------------------------
 
+  it('prepares AutoTask, starts deferred children through normal gates and blocks the root until their completion', async () => {
+    const root = createTestFeature({ autoTask: { enabled: true } });
+    const child = createTestFeature({
+      id: 'child',
+      agentRunId: 'child-run',
+      autoTask: { enabled: false, sourceFeatureId: root.id },
+    });
+    const rows = [root, child];
+    featureRepo.findById.mockImplementation(async (id) => rows.find((f) => f.id === id) ?? null);
+    featureRepo.list.mockResolvedValue(rows);
+    featureRepo.update.mockImplementation(async (f) =>
+      Object.assign(rows.find((row) => row.id === f.id)!, f)
+    );
+    runRepo.findById.mockImplementation(async (id) => createTestRun({ id }));
+    const expand = {
+      execute: vi.fn(async () => {
+        root.parentIds = [child.id];
+        root.autoTask!.plan = { ready: true, tasks: [], parentIds: [child.id] };
+      }),
+    };
+    const spawn = {
+      execute: vi.fn(async ({ feature }) => {
+        Object.assign(rows.find((row) => row.id === feature.id)!, feature);
+      }),
+    };
+    const start = new StartFeatureUseCase(
+      featureRepo as never,
+      runRepo as never,
+      spawn as never,
+      capacity as never,
+      expand as never
+    );
+    const result = await start.execute(root.id);
+    expect(expand.execute).toHaveBeenCalledWith(root.id);
+    expect(spawn.execute).toHaveBeenCalledTimes(1);
+    expect(spawn.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ feature: expect.objectContaining({ id: 'child' }) })
+    );
+    expect(result.blocked).toBe(true);
+    expect(result.blockedBy?.id).toBe('child');
+  });
+
   it('should throw when feature is not found', async () => {
     featureRepo.findById.mockResolvedValue(null);
     featureRepo.findByIdPrefix.mockResolvedValue(null);

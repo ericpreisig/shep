@@ -27,6 +27,7 @@ import { featureParentIds } from '../../../domain/shared/feature-dependencies.js
 import { markQueuedForCapacity } from '../../../domain/shared/parallel-feature-limit.js';
 import { SpawnFeatureAgentUseCase } from './spawn-feature-agent.use-case.js';
 import { FeatureCapacityService } from './capacity/feature-capacity.service.js';
+import { ExpandAutoTaskUseCase } from './expand-auto-task.use-case.js';
 
 export interface StartFeatureResult {
   feature: Feature;
@@ -68,7 +69,9 @@ export class StartFeatureUseCase {
     @inject(SpawnFeatureAgentUseCase)
     private readonly spawnFeatureAgent: SpawnFeatureAgentUseCase,
     @inject(FeatureCapacityService)
-    private readonly capacity: FeatureCapacityService
+    private readonly capacity: FeatureCapacityService,
+    @inject(ExpandAutoTaskUseCase, { isOptional: true })
+    private readonly autoTask?: ExpandAutoTaskUseCase
   ) {}
 
   async execute(featureId: string, options?: StartFeatureOptions): Promise<StartFeatureResult> {
@@ -117,6 +120,20 @@ export class StartFeatureUseCase {
         throw new Error(
           `Feature "${resolved.name}" is still being initialized — please try again shortly`
         );
+      }
+    }
+
+    if (resolved.autoTask?.enabled) {
+      if (!this.autoTask) throw new Error('AutoTask planner is unavailable');
+      await this.autoTask.execute(resolved.id);
+      resolved = (await this.featureRepo.findById(resolved.id)) ?? resolved;
+      const children = await this.featureRepo.list({ repositoryPath: resolved.repositoryPath });
+      for (const child of children) {
+        if (
+          child.autoTask?.sourceFeatureId === resolved.id &&
+          child.lifecycle === SdlcLifecycle.Pending
+        )
+          await this.execute(child.id, options);
       }
     }
 
