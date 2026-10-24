@@ -41,7 +41,7 @@ function createMockGitPrService(): IGitPrService {
     commitAll: vi.fn().mockResolvedValue('abc1234'),
     createBranch: vi.fn(),
     checkoutBranch: vi.fn(),
-    hasRemote: vi.fn(),
+    hasRemote: vi.fn().mockResolvedValue(true),
     push: vi.fn(),
     createPr: vi.fn(),
     mergePr: vi.fn(),
