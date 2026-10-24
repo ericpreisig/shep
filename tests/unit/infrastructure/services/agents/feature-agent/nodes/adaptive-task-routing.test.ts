@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { TaskComplexity } from '@/domain/generated/output.js';
+import { AgentType, TaskComplexity } from '@/domain/generated/output.js';
 import {
   buildAdaptiveRouting,
   planTaskBatches,
@@ -30,6 +30,45 @@ function task(id: string, complexity?: TaskComplexity): RoutableTask {
 const CLAUDE_CODE = 'claude-code';
 
 describe('buildAdaptiveRouting', () => {
+  it('uses an explicitly selected provider while keeping unoverridden native-profile tiers intact', () => {
+    const routing = buildAdaptiveRouting({
+      agentType: 'codex-cli',
+      baseModel: 'codex-profile:deepseek',
+      adaptive: { enabled: true, low: 'deepseek/flash', lowAgentType: AgentType.OpenRouter },
+    });
+    expect(routing.enabled).toBe(true);
+    expect(routing.resolve(task('small', TaskComplexity.Low))).toEqual({
+      complexity: TaskComplexity.Low,
+      model: 'deepseek/flash',
+      agentType: AgentType.OpenRouter,
+    });
+    expect(routing.resolve(task('large', TaskComplexity.High)).model).toBe(
+      'codex-profile:deepseek'
+    );
+  });
+
+  it('does not batch the same model identifier across two providers', () => {
+    const routing = buildAdaptiveRouting({
+      agentType: 'codex-cli',
+      baseModel: 'shared-model',
+      adaptive: {
+        enabled: true,
+        high: 'shared-model',
+        highAgentType: AgentType.CodexCli,
+        low: 'shared-model',
+        lowAgentType: AgentType.OpenRouter,
+      },
+    });
+    const batches = planTaskBatches(
+      [task('one', TaskComplexity.High), task('two', TaskComplexity.Low)],
+      routing
+    );
+    expect(batches).toHaveLength(2);
+    expect(batches.map((batch) => batch.agentType)).toEqual([
+      AgentType.CodexCli,
+      AgentType.OpenRouter,
+    ]);
+  });
   it('keeps a native Codex profile intact instead of dropping its provider for a tier override', () => {
     const routing = buildAdaptiveRouting({
       agentType: 'codex-cli',

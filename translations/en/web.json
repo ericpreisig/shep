@@ -152,10 +152,10 @@
       "title": "Adaptive model selection",
       "description": "Run each planned task on a model sized for its complexity",
       "enabled": "Route tasks by complexity",
-      "enabledDescription": "After planning, each task runs on the model matching its complexity instead of the pinned model. Simple tasks get a smaller, faster model.",
+      "enabledDescription": "After planning, each task uses the provider and model chosen for its complexity. Unset tiers derive from the pinned model.",
       "derived": "Derived from pinned model",
       "planUnavailable": "Could not resolve the tier models for the current agent.",
-      "ceilingHint": "Pinned model {{model}} on {{agent}} is the ceiling — a tier is never more capable than it, and never leaves its model family.",
+      "ceilingHint": "Automatic choices use {{model}} ({{agent}}) as their ceiling. Explicit choices use the selected provider and model.",
       "singleModelHint": "{{model}} has no known lower tier in this agent's catalog, so every task would still run on it. Pin a model with a smaller sibling, or choose tier models explicitly below.",
       "tiers": {
         "high": "High complexity",
@@ -165,7 +165,7 @@
         "low": "Low complexity",
         "lowDescription": "Mechanical edits — translation keys, enum entries, stories, renames."
       },
-      "hint": "Turn this on when you pin a flagship model but most of your task list is mechanical. The pinned model stays the ceiling, so this can only lower cost.",
+      "hint": "Choose a provider and model for each complexity tier, or keep automatic choices derived from the pinned model.",
       "links": {
         "configurationGuide": "Configuration guide"
       }

@@ -128,6 +128,15 @@ model AdaptiveModelConfig {
 
   @doc("Explicit model for Low-complexity tasks (default: derived from the pinned model)")
   low?: string;
+
+  @doc("Provider for the explicit High model; omitted means the run's pinned provider")
+  highAgentType?: AgentType;
+
+  @doc("Provider for the explicit Medium model; omitted means the run's pinned provider")
+  mediumAgentType?: AgentType;
+
+  @doc("Provider for the explicit Low model; omitted means the run's pinned provider")
+  lowAgentType?: AgentType;
 }
 
 /**

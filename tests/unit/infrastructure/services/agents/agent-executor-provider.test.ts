@@ -4,8 +4,37 @@ import { AgentExecutorProvider } from '@/infrastructure/services/agents/common/a
 import type { IAgentExecutorFactory } from '@/application/ports/output/agents/agent-executor-factory.interface.js';
 import type { IAgentExecutor } from '@/application/ports/output/agents/agent-executor.interface.js';
 import type { ISettingsRepository } from '@/application/ports/output/repositories/settings.repository.interface.js';
+import { AgentType, AgentAuthMethod } from '@/domain/generated/output.js';
 
 describe('AgentExecutorProvider', () => {
+  it('resolves an explicit provider with only its own current credentials', async () => {
+    const settings = {
+      agent: { type: AgentType.CodexCli, authMethod: AgentAuthMethod.Session },
+      agentProviders: [
+        {
+          type: AgentType.OpenRouter,
+          authMethod: AgentAuthMethod.Token,
+          token: 'router-test-token',
+        },
+      ],
+    };
+    vi.mocked(mockSettingsRepo.load).mockResolvedValue(
+      settings as Awaited<ReturnType<ISettingsRepository['load']>>
+    );
+    await provider.getExecutor(AgentType.OpenRouter);
+    expect(mockFactory.createExecutor).toHaveBeenCalledWith(
+      AgentType.OpenRouter,
+      settings.agentProviders[0]
+    );
+    settings.agentProviders[0].token = 'rotated-router-token';
+    await provider.getExecutor(AgentType.OpenRouter);
+    expect(mockFactory.createExecutor).toHaveBeenLastCalledWith(
+      AgentType.OpenRouter,
+      expect.objectContaining({ token: 'rotated-router-token' })
+    );
+    await provider.getExecutor(AgentType.CodexCli);
+    expect(mockFactory.createExecutor).toHaveBeenLastCalledWith(AgentType.CodexCli, settings.agent);
+  });
   let provider: AgentExecutorProvider;
   let mockFactory: IAgentExecutorFactory;
   let mockExecutor: IAgentExecutor;

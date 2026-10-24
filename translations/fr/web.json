@@ -152,10 +152,10 @@
       "title": "Sélection adaptative du modèle",
       "description": "Exécuter chaque tâche planifiée sur un modèle adapté à sa complexité",
       "enabled": "Router les tâches selon la complexité",
-      "enabledDescription": "Après la planification, chaque tâche s'exécute sur le modèle correspondant à sa complexité plutôt que sur le modèle épinglé. Les tâches simples reçoivent un modèle plus petit et plus rapide.",
+      "enabledDescription": "Après la planification, chaque tâche utilise le provider et le modèle choisis pour sa complexité. Les niveaux sans choix explicite sont dérivés du modèle épinglé.",
       "derived": "Dérivé du modèle épinglé",
       "planUnavailable": "Impossible de déterminer les modèles par niveau pour l'agent actuel.",
-      "ceilingHint": "Le modèle épinglé {{model}} sur {{agent}} est le plafond : aucun niveau n'est plus capable que lui ni ne quitte sa famille de modèles.",
+      "ceilingHint": "Les choix automatiques utilisent {{model}} ({{agent}}) comme plafond. Les choix explicites utilisent le provider et le modèle sélectionnés.",
       "singleModelHint": "{{model}} n'a pas de niveau inférieur connu dans le catalogue de cet agent, donc toutes les tâches continueraient de s'y exécuter. Épinglez un modèle ayant un équivalent plus petit, ou choisissez les modèles par niveau ci-dessous.",
       "tiers": {
         "high": "Complexité élevée",
@@ -165,7 +165,7 @@
         "low": "Complexité faible",
         "lowDescription": "Modifications mécaniques : clés de traduction, entrées d'énumération, stories, renommages."
       },
-      "hint": "Activez ceci quand vous épinglez un modèle haut de gamme alors que la plupart de vos tâches sont mécaniques. Le modèle épinglé reste le plafond, donc cela ne peut que réduire le coût.",
+      "hint": "Choisissez un provider et un modèle pour chaque niveau de complexité, ou conservez les choix automatiques dérivés du modèle épinglé.",
       "links": {
         "configurationGuide": "Guide de configuration"
       }

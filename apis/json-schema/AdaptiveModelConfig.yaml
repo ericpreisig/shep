@@ -15,6 +15,15 @@ properties:
   low:
     type: string
     description: "Explicit model for Low-complexity tasks (default: derived from the pinned model)"
+  highAgentType:
+    $ref: AgentType.yaml
+    description: Provider for the explicit High model; omitted means the run's pinned provider
+  mediumAgentType:
+    $ref: AgentType.yaml
+    description: Provider for the explicit Medium model; omitted means the run's pinned provider
+  lowAgentType:
+    $ref: AgentType.yaml
+    description: Provider for the explicit Low model; omitted means the run's pinned provider
 required:
   - enabled
 description: Adaptive per-task model tier selection

@@ -1,0 +1,68 @@
+name: adaptive-provider-routing
+relatedFeatures:
+- 144-multiple-agent-providers
+- 145-codex-profile-models
+technologies:
+- TypeScript
+- React
+- SQLite
+- TypeSpec
+relatedLinks: []
+openQuestions: []
+summary: Select and execute an explicit provider/model pair for each adaptive complexity
+  tier.
+totalEstimate: 2h
+tasks:
+- id: task-1
+  title: Provider-aware contract and runtime (RED-GREEN-REFACTOR)
+  description: Provider-aware contract and runtime (RED-GREEN-REFACTOR)
+  state: Done
+  dependencies: []
+  acceptanceCriteria:
+  - Persist provider types and dispatch to the correct executor with isolated credentials.
+  tdd:
+    red:
+    - Add failing behavioral regressions.
+    green:
+    - Extend existing provider, routing and picker seams.
+    refactor:
+    - Keep backward compatibility and one source of truth.
+  estimatedEffort: 40m
+- id: task-2
+  title: Reuse multi-provider tier picker (RED-GREEN-REFACTOR)
+  description: Reuse multi-provider tier picker (RED-GREEN-REFACTOR)
+  state: Done
+  dependencies:
+  - task-1
+  acceptanceCriteria:
+  - Show every provider catalog, render missing stored models and clear overrides
+    reliably.
+  tdd:
+    red:
+    - Add failing behavioral regressions.
+    green:
+    - Extend existing provider, routing and picker seams.
+    refactor:
+    - Keep backward compatibility and one source of truth.
+  estimatedEffort: 40m
+- id: task-3
+  title: Verify and deploy (RED-GREEN-REFACTOR)
+  description: Verify and deploy (RED-GREEN-REFACTOR)
+  state: Done
+  dependencies:
+  - task-2
+  acceptanceCriteria:
+  - Validate behavior and deployed UI; push scoped changes on main.
+  tdd:
+    red:
+    - Add failing behavioral regressions.
+    green:
+    - Extend existing provider, routing and picker seams.
+    refactor:
+    - Keep backward compatibility and one source of truth.
+  estimatedEffort: 40m
+content: '## Acceptance Checklist
+
+  All tier choices preserve both provider and model through save, reload and execution.
+
+  '

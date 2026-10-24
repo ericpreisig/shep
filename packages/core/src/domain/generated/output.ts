@@ -246,6 +246,21 @@ export enum AgentEffort {
   xhigh = 'xhigh',
   max = 'max',
 }
+export enum AgentType {
+  ClaudeCode = 'claude-code',
+  KimiCode = 'kimi-code',
+  CodexCli = 'codex-cli',
+  CopilotCli = 'copilot-cli',
+  GeminiCli = 'gemini-cli',
+  Cursor = 'cursor',
+  Cline = 'cline',
+  OpenRouter = 'openrouter',
+  TogetherAi = 'together-ai',
+  Ollama = 'ollama',
+  LlmProxy = 'llmproxy',
+  Dev = 'dev',
+  ShepHarness = 'shep-harness',
+}
 
 /**
  * Adaptive per-task model tier selection
@@ -267,6 +282,18 @@ export type AdaptiveModelConfig = {
    * Explicit model for Low-complexity tasks (default: derived from the pinned model)
    */
   low?: string;
+  /**
+   * Provider for the explicit High model; omitted means the run's pinned provider
+   */
+  highAgentType?: AgentType;
+  /**
+   * Provider for the explicit Medium model; omitted means the run's pinned provider
+   */
+  mediumAgentType?: AgentType;
+  /**
+   * Provider for the explicit Low model; omitted means the run's pinned provider
+   */
+  lowAgentType?: AgentType;
 };
 
 /**
@@ -579,21 +606,6 @@ export type WorkflowConfig = {
    */
   skillInjection?: SkillInjectionConfig;
 };
-export enum AgentType {
-  ClaudeCode = 'claude-code',
-  KimiCode = 'kimi-code',
-  CodexCli = 'codex-cli',
-  CopilotCli = 'copilot-cli',
-  GeminiCli = 'gemini-cli',
-  Cursor = 'cursor',
-  Cline = 'cline',
-  OpenRouter = 'openrouter',
-  TogetherAi = 'together-ai',
-  Ollama = 'ollama',
-  LlmProxy = 'llmproxy',
-  Dev = 'dev',
-  ShepHarness = 'shep-harness',
-}
 export enum AgentAuthMethod {
   Session = 'session',
   Token = 'token',

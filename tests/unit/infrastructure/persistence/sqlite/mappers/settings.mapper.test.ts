@@ -20,6 +20,18 @@ import { AgentEffort } from '@/domain/generated/output.js';
 import { createDefaultSettings } from '@/domain/factories/settings-defaults.factory.js';
 
 describe('worktree copy paths persistence', () => {
+  it('round-trips per-tier provider/model pairs without losing legacy models', () => {
+    const settings = createTestSettings();
+    settings.models.adaptive = {
+      enabled: true,
+      high: 'codex-profile:deepseek',
+      highAgentType: AgentType.CodexCli,
+      low: 'deepseek/flash',
+      lowAgentType: AgentType.OpenRouter,
+    };
+    expect(fromDatabase(toDatabase(settings)).models.adaptive).toEqual(settings.models.adaptive);
+    expect(fromDatabase(createTestRow()).models.adaptive).toBeUndefined();
+  });
   it('round-trips the normalized allowlist and keeps legacy defaults', () => {
     const row = toDatabase(
       createTestSettings({

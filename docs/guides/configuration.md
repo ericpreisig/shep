@@ -127,8 +127,9 @@ supports, so switching agents can change which models are available.
 
 ### Adaptive model tiers
 
-Adaptive selection routes each planned task to a model matching its complexity. The pinned model
-is always the **ceiling** — adaptive selection may step down for simple tasks, never up.
+Adaptive selection routes each planned task to a model matching its complexity. Automatic
+choices use the pinned model as their **ceiling**. Explicit overrides use the chosen provider
+and model, including choices from another provider.
 
 ```bash
 shep settings adaptive-models --enable
@@ -139,6 +140,13 @@ shep settings adaptive-models --disable
 
 Leaving a tier unset derives it from the pinned model's family intersected with the agent's
 supported model list.
+
+In **Settings → Adaptive models**, each tier uses the same searchable provider/model picker
+as the main agent settings. Selecting a tier does not change the default provider. The stored
+`models.adaptive` pairs `high` / `medium` / `low` with optional `highAgentType` /
+`mediumAgentType` / `lowAgentType`; legacy model-only choices inherit the run's provider.
+Returning to the derived option clears both fields for that tier. Native profiles stay intact
+for automatic choices and can be replaced by an explicit provider/model selection.
 
 ### Reasoning effort
 

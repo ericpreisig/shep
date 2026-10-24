@@ -1,0 +1,48 @@
+feature:
+  id: 148-adaptive-provider-routing
+  name: adaptive-provider-routing
+  number: 148
+  branch: main
+  lifecycle: implementation
+  createdAt: '2026-10-24T06:31:32Z'
+status:
+  phase: ready-for-review
+  progress:
+    total: 3
+    completed: 3
+    percentage: 100
+  currentTask: null
+  lastUpdated: '2026-10-24T06:51:30.922282+00:00'
+  lastUpdatedBy: shep-kit:implement
+validation:
+  lastRun: '2026-10-24T06:51:30.922282+00:00'
+  gatesPassed:
+  - targeted-tests
+  - worker-graph-regressions
+  - typespec
+  - typecheck
+  - eslint
+  - cli-build
+  - web-build
+  - deployed-ui
+  autoFixesApplied: []
+tasks:
+  current: null
+  blocked: []
+  failed: []
+checkpoints:
+- phase: feature-created
+  completedAt: '2026-10-24T06:31:32Z'
+  completedBy: shep-kit:new-feature
+- phase: research-complete
+  completedAt: '2026-10-24T06:51:30.922282+00:00'
+  completedBy: shep-kit:research
+- phase: planning-complete
+  completedAt: '2026-10-24T06:51:30.922282+00:00'
+  completedBy: shep-kit:plan
+- phase: implementation-complete
+  completedAt: '2026-10-24T06:51:30.922282+00:00'
+  completedBy: shep-kit:implement
+errors:
+  current: null
+  history: []

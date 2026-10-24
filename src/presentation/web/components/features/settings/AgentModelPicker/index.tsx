@@ -8,7 +8,6 @@ import { checkAllAgentsStatus } from '@/app/actions/check-all-agents-status';
 import type { AgentInstallMap } from '@/app/actions/check-all-agents-status';
 import { updateAgentAndModel } from '@/app/actions/update-agent-and-model';
 import { getAgentTypeIcon } from '@/components/common/feature-node/agent-type-icons';
-import { getModelMeta } from '@/lib/model-metadata';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -30,6 +29,11 @@ export interface AgentModelPickerProps {
   showInstallStatus?: boolean;
   /** Which side to open the popover. Defaults to 'bottom'; use 'top' when the trigger is near the bottom of the viewport. */
   popoverSide?: 'top' | 'bottom';
+  /** Reuse a catalog already loaded by the parent when several pickers share it. */
+  modelGroups?: AgentModelGroup[];
+  /** Offer an inherited/default choice, represented by an empty model. */
+  defaultOptionLabel?: string;
+  ariaLabel?: string;
 }
 
 export interface AgentModelPickerSaveResult {
@@ -51,6 +55,9 @@ export function AgentModelPicker({
   mode,
   showInstallStatus,
   popoverSide = 'bottom',
+  modelGroups,
+  defaultOptionLabel,
+  ariaLabel = 'Agent and model',
 }: AgentModelPickerProps) {
   const [open, setOpen] = React.useState(false);
   const [groups, setGroups] = React.useState<AgentModelGroup[]>([]);
@@ -70,6 +77,11 @@ export function AgentModelPicker({
   const [modelQuery, setModelQuery] = React.useState('');
 
   const loadGroups = React.useCallback(async () => {
+    if (modelGroups) {
+      setGroups(modelGroups);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setLoadError(null);
     try {
@@ -79,7 +91,7 @@ export function AgentModelPicker({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [modelGroups]);
 
   React.useEffect(() => {
     void loadGroups();
@@ -218,9 +230,7 @@ export function AgentModelPicker({
   const selectedGroup = groups.find((g) => g.agentType === agentType);
   const agentLabel = selectedGroup?.label ?? agentType;
   const modelName = model
-    ? (selectedGroup?.models.find((entry) => entry.id === model)?.displayName ??
-        getModelMeta(model).displayName) ||
-      model
+    ? (selectedGroup?.models.find((entry) => entry.id === model)?.displayName ?? model)
     : null;
 
   const activeGroup = drillAgent ? groups.find((g) => g.agentType === drillAgent) : null;
@@ -233,7 +243,7 @@ export function AgentModelPicker({
             type="button"
             variant="outline"
             role="combobox"
-            aria-label="Agent and model"
+            aria-label={ariaLabel}
             aria-expanded={open}
             disabled={isDisabled}
             className="w-auto cursor-pointer justify-start font-normal hover:border-violet-300 hover:bg-violet-50/50 dark:hover:border-violet-700 dark:hover:bg-violet-950/30"
@@ -242,6 +252,8 @@ export function AgentModelPicker({
               <AgentIcon aria-hidden className="h-4 w-4 shrink-0" />
               {loading ? (
                 'Loading…'
+              ) : !model && defaultOptionLabel ? (
+                <span className="truncate text-xs">{defaultOptionLabel}</span>
               ) : (
                 <span className="flex items-center gap-1">
                   <span className="text-muted-foreground text-xs">{agentLabel}</span>
@@ -277,6 +289,16 @@ export function AgentModelPicker({
               <div className="text-muted-foreground border-b px-3 py-2 text-xs font-medium">
                 Select agent
               </div>
+              {defaultOptionLabel ? (
+                <button
+                  type="button"
+                  className="hover:bg-accent flex w-full items-center gap-2 border-b px-3 py-2 text-left text-xs"
+                  onClick={() => handleSelect(initialAgentType, '')}
+                >
+                  {!model ? <Check className="h-3.5 w-3.5" /> : null}
+                  {defaultOptionLabel}
+                </button>
+              ) : null}
               {groups.map((group) => {
                 const GroupIcon = getAgentTypeIcon(group.agentType);
                 const isActive = agentType === group.agentType;

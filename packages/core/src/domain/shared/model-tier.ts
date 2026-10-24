@@ -25,7 +25,7 @@
 // No .js extension: the web package consumes this subtree as raw TypeScript
 // through Turbopack, which does not map .js back to .ts.
 import { TaskComplexity } from '../generated/output';
-import type { AdaptiveModelConfig, ModelConfiguration } from '../generated/output';
+import type { AdaptiveModelConfig, ModelConfiguration, AgentType } from '../generated/output';
 
 /** Ordering used for clamping and for walking back toward the pinned tier. */
 const TIER_ORDER: readonly TaskComplexity[] = [
@@ -320,6 +320,9 @@ export function classifyTaskComplexity(task: ClassifiableTask): TaskComplexity {
 
 /** Explicit per-tier model overrides from `Settings.models.adaptive`. */
 export interface TierOverrides {
+  highAgentType?: AgentType;
+  mediumAgentType?: AgentType;
+  lowAgentType?: AgentType;
   high?: string;
   medium?: string;
   low?: string;
@@ -343,7 +346,14 @@ export function tierOverridesFrom(
   adaptive: AdaptiveModelConfig | undefined | null
 ): TierOverrides | undefined {
   if (!adaptive) return undefined;
-  return { high: adaptive.high, medium: adaptive.medium, low: adaptive.low };
+  return {
+    high: adaptive.high,
+    medium: adaptive.medium,
+    low: adaptive.low,
+    ...(adaptive.highAgentType && { highAgentType: adaptive.highAgentType }),
+    ...(adaptive.mediumAgentType && { mediumAgentType: adaptive.mediumAgentType }),
+    ...(adaptive.lowAgentType && { lowAgentType: adaptive.lowAgentType }),
+  };
 }
 
 /** A resolved model identifier for each complexity tier. */

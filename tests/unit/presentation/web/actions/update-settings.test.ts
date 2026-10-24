@@ -34,6 +34,23 @@ const { updateSettingsAction } = await import(
 );
 
 describe('updateSettingsAction server action', () => {
+  it('clears an adaptive model and provider together when returning to derived', async () => {
+    const settings = createDefaultSettings();
+    settings.models.adaptive = {
+      enabled: true,
+      high: 'codex-profile:deepseek',
+      low: 'deepseek/flash',
+      lowAgentType: 'openrouter' as NonNullable<typeof settings.models.adaptive>['lowAgentType'],
+    };
+    mockLoadExecute.mockResolvedValue(settings);
+    const result = await updateSettingsAction({ models: { adaptive: { enabled: true, low: '' } } });
+    expect(result.success).toBe(true);
+    expect(mockUpdateExecute.mock.calls[0][0].models.adaptive).toEqual({
+      enabled: true,
+      high: 'codex-profile:deepseek',
+    });
+    expect(mockUpdateExecute.mock.calls[0][0].agent).toEqual(settings.agent);
+  });
   const defaults = createDefaultSettings();
 
   beforeEach(() => {

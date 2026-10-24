@@ -10,6 +10,7 @@
 
 import { AgentType, type AgentConfig } from '../../../../domain/generated/output.js';
 import { resolveLocalProviderBaseUrl } from './language-model-factory.js';
+import { getCodexProfileName } from './codex-profiles.js';
 import {
   resolveAdaptiveTierPlan,
   type AdaptiveTierPlan,
@@ -224,10 +225,17 @@ export class AgentExecutorFactory implements IAgentExecutorFactory {
     baseModel: string,
     overrides?: TierOverrides
   ): AdaptiveTierPlan {
+    const effectiveOverrides = getCodexProfileName(baseModel)
+      ? {
+          high: overrides?.highAgentType ? overrides.high : undefined,
+          medium: overrides?.mediumAgentType ? overrides.medium : undefined,
+          low: overrides?.lowAgentType ? overrides.low : undefined,
+        }
+      : overrides;
     return resolveAdaptiveTierPlan({
       baseModel,
       availableModels: this.getSupportedModels(agentType),
-      overrides,
+      overrides: effectiveOverrides,
     });
   }
 

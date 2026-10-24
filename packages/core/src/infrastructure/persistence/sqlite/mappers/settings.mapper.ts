@@ -78,6 +78,9 @@ export interface SettingsRow extends SettingsTelemetryRow {
   model_adaptive_high: string | null;
   model_adaptive_medium: string | null;
   model_adaptive_low: string | null;
+  model_adaptive_high_agent_type?: string | null;
+  model_adaptive_medium_agent_type?: string | null;
+  model_adaptive_low_agent_type?: string | null;
   // ModelConfiguration.effort — added in migration 147. NULL = agent default.
   model_effort: string | null;
 
@@ -617,7 +620,13 @@ function adaptiveModelsToRow(
   adaptive: AdaptiveModelConfig | undefined
 ): Pick<
   SettingsRow,
-  'model_adaptive_enabled' | 'model_adaptive_high' | 'model_adaptive_medium' | 'model_adaptive_low'
+  | 'model_adaptive_enabled'
+  | 'model_adaptive_high'
+  | 'model_adaptive_medium'
+  | 'model_adaptive_low'
+  | 'model_adaptive_high_agent_type'
+  | 'model_adaptive_medium_agent_type'
+  | 'model_adaptive_low_agent_type'
 > {
   const trimmed = (value: string | undefined): string | null => {
     const next = value?.trim();
@@ -630,6 +639,13 @@ function adaptiveModelsToRow(
     model_adaptive_high: trimmed(adaptive?.high),
     model_adaptive_medium: trimmed(adaptive?.medium),
     model_adaptive_low: trimmed(adaptive?.low),
+    model_adaptive_high_agent_type: trimmed(adaptive?.high)
+      ? (adaptive?.highAgentType ?? null)
+      : null,
+    model_adaptive_medium_agent_type: trimmed(adaptive?.medium)
+      ? (adaptive?.mediumAgentType ?? null)
+      : null,
+    model_adaptive_low_agent_type: trimmed(adaptive?.low) ? (adaptive?.lowAgentType ?? null) : null,
   };
 }
 
@@ -655,6 +671,18 @@ function adaptiveModelsFromRow(row: SettingsRow): AdaptiveModelConfig | undefine
     ...(high !== undefined && { high }),
     ...(medium !== undefined && { medium }),
     ...(low !== undefined && { low }),
+    ...(high &&
+      row.model_adaptive_high_agent_type && {
+        highAgentType: row.model_adaptive_high_agent_type as AgentType,
+      }),
+    ...(medium &&
+      row.model_adaptive_medium_agent_type && {
+        mediumAgentType: row.model_adaptive_medium_agent_type as AgentType,
+      }),
+    ...(low &&
+      row.model_adaptive_low_agent_type && {
+        lowAgentType: row.model_adaptive_low_agent_type as AgentType,
+      }),
   };
 }
 

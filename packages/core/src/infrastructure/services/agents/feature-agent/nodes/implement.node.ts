@@ -15,6 +15,8 @@ import type {
   IAgentExecutor,
   AgentExecutionResult,
 } from '@/application/ports/output/agents/agent-executor.interface.js';
+import type { IAgentExecutorProvider } from '@/application/ports/output/agents/agent-executor-provider.interface.js';
+import type { AgentType } from '@/domain/generated/output.js';
 import type { FeatureAgentState } from '../state.js';
 import {
   createNodeLogger,
@@ -135,8 +137,18 @@ async function runCancellingOnFailure<T>(
   return outcomes.map((outcome) => (outcome as PromiseFulfilledResult<T>).value);
 }
 
-export function createImplementNode(executor: IAgentExecutor, selectMemory?: MemorySelector) {
+export function createImplementNode(
+  executor: IAgentExecutor,
+  selectMemory?: MemorySelector,
+  executorProvider?: IAgentExecutorProvider
+) {
   const log = createNodeLogger('implement');
+  const executorFor = async (agentType?: AgentType): Promise<IAgentExecutor> => {
+    if (!agentType || agentType === executor.agentType) return executor;
+    if (!executorProvider)
+      throw new Error(`No executor provider is available for adaptive agent ${agentType}`);
+    return executorProvider.getExecutor(agentType);
+  };
 
   return async (state: FeatureAgentState): Promise<Partial<FeatureAgentState>> => {
     log.activate();
@@ -363,25 +375,28 @@ export function createImplementNode(executor: IAgentExecutor, selectMemory?: Mem
           });
           await updatePhasePrompt(phaseTimingId, taskPrompts.join('\n\n---\n\n'));
 
-          const results = await runCancellingOnFailure(phaseTasks.length, (idx, abortSignal) => {
-            const task = phaseTasks[idx];
-            const { complexity, model } = routing.resolve(task);
-            const routingNote = routing.enabled ? ` [${complexity} → ${model}]` : '';
-            log.info(
-              `  [parallel] Task ${task.id}: "${task.title}" — ${taskPrompts[idx].length} chars${routingNote}`
-            );
-            const taskOptions = buildExecutorOptions(
-              state,
-              model !== undefined ? { model } : undefined,
-              'implement'
-            );
-            return retryExecute(
-              executor,
-              taskPrompts[idx],
-              { ...taskOptions, abortSignal },
-              retryOpts
-            );
-          });
+          const results = await runCancellingOnFailure(
+            phaseTasks.length,
+            async (idx, abortSignal) => {
+              const task = phaseTasks[idx];
+              const { complexity, model, agentType } = routing.resolve(task);
+              const routingNote = routing.enabled ? ` [${complexity} → ${model}]` : '';
+              log.info(
+                `  [parallel] Task ${task.id}: "${task.title}" — ${taskPrompts[idx].length} chars${routingNote}`
+              );
+              const taskOptions = buildExecutorOptions(
+                state,
+                model !== undefined ? { model } : undefined,
+                'implement'
+              );
+              return retryExecute(
+                await executorFor(agentType),
+                taskPrompts[idx],
+                { ...taskOptions, abortSignal },
+                retryOpts
+              );
+            }
+          );
 
           for (let j = 0; j < results.length; j++) {
             log.info(
@@ -435,7 +450,7 @@ export function createImplementNode(executor: IAgentExecutor, selectMemory?: Mem
 
             log.info(label);
             const result = await retryExecute(
-              executor,
+              await executorFor(batch.agentType),
               prompt,
               buildExecutorOptions(
                 state,

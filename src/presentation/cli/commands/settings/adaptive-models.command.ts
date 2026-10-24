@@ -75,7 +75,10 @@ export function buildNextAdaptiveConfig(
     if (value === undefined) return;
     const trimmed = value.trim();
     if (trimmed) next[key] = trimmed;
-    else delete next[key];
+    else {
+      delete next[key];
+      delete next[`${key}AgentType`];
+    }
   };
   applyTier('high', options.high);
   applyTier('medium', options.medium);

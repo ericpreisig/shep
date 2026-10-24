@@ -83,7 +83,15 @@ export class GetAdaptiveModelPlanUseCase {
       overrides,
       supportedModels: this.executorFactory.getSupportedModels(agentType),
       degradesToSingleModel:
-        tiers.high === tiers.medium && tiers.medium === tiers.low && tiers.low === baseModel,
+        tiers.high === tiers.medium &&
+        tiers.medium === tiers.low &&
+        tiers.low === baseModel &&
+        !(['high', 'medium', 'low'] as const).some(
+          (tier) =>
+            adaptive?.[tier] &&
+            adaptive[`${tier}AgentType`] &&
+            adaptive[`${tier}AgentType`] !== agentType
+        ),
     };
   }
 }

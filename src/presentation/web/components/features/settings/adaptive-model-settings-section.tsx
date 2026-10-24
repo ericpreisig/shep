@@ -6,19 +6,11 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { AgentModelPicker } from './AgentModelPicker';
+import { getAllAgentModels, type AgentModelGroup } from '@/app/actions/get-all-agent-models';
 import { updateSettingsAction } from '@/app/actions/update-settings';
 import { getAdaptiveModelPlan } from '@/app/actions/get-adaptive-model-plan';
-import type { AdaptiveModelConfig } from '@shepai/core/domain/generated/output';
-
-/** Sentinel for "no override — derive this tier from the pinned model". */
-const DERIVED = '__derived__';
+import type { AdaptiveModelConfig, AgentType } from '@shepai/core/domain/generated/output';
 
 type Tier = 'high' | 'medium' | 'low';
 
@@ -34,6 +26,9 @@ interface ResolvedPlan {
 
 export interface AdaptiveModelSettingsSectionProps {
   adaptive?: AdaptiveModelConfig;
+  agentType?: string;
+  model?: string;
+  providersKey?: string;
 }
 
 /**
@@ -44,7 +39,12 @@ export interface AdaptiveModelSettingsSectionProps {
  * answer depends on what their agent's catalog actually serves — the pin is a
  * ceiling, and some pins have no cheaper sibling at all.
  */
-export function AdaptiveModelSettingsSection({ adaptive }: AdaptiveModelSettingsSectionProps) {
+export function AdaptiveModelSettingsSection({
+  adaptive,
+  agentType,
+  model,
+  providersKey,
+}: AdaptiveModelSettingsSectionProps) {
   const { t } = useTranslation('web');
   const [enabled, setEnabled] = useState(adaptive?.enabled ?? false);
   const [overrides, setOverrides] = useState<Partial<Record<Tier, string>>>({
@@ -53,6 +53,12 @@ export function AdaptiveModelSettingsSection({ adaptive }: AdaptiveModelSettings
     low: adaptive?.low,
   });
   const [plan, setPlan] = useState<ResolvedPlan | null>(null);
+  const [groups, setGroups] = useState<AgentModelGroup[]>([]);
+  const [agents, setAgents] = useState<Partial<Record<Tier, AgentType>>>({
+    high: adaptive?.highAgentType,
+    medium: adaptive?.mediumAgentType,
+    low: adaptive?.lowAgentType,
+  });
   const [planError, setPlanError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [showSaved, setShowSaved] = useState(false);
@@ -68,7 +74,8 @@ export function AdaptiveModelSettingsSection({ adaptive }: AdaptiveModelSettings
   }, [isPending]);
 
   const refreshPlan = useCallback(async () => {
-    const result = await getAdaptiveModelPlan();
+    const [result, modelGroups] = await Promise.all([getAdaptiveModelPlan(), getAllAgentModels()]);
+    setGroups(modelGroups);
     if (result.plan) {
       setPlan({
         agentType: result.plan.agentType,
@@ -85,7 +92,7 @@ export function AdaptiveModelSettingsSection({ adaptive }: AdaptiveModelSettings
 
   useEffect(() => {
     void refreshPlan();
-  }, [refreshPlan]);
+  }, [refreshPlan, agentType, model, providersKey]);
 
   function save(next: AdaptiveModelConfig, revert: () => void) {
     startTransition(async () => {
@@ -102,9 +109,12 @@ export function AdaptiveModelSettingsSection({ adaptive }: AdaptiveModelSettings
   function currentConfig(): AdaptiveModelConfig {
     return {
       enabled,
-      ...(overrides.high ? { high: overrides.high } : {}),
-      ...(overrides.medium ? { medium: overrides.medium } : {}),
-      ...(overrides.low ? { low: overrides.low } : {}),
+      ...(overrides.high !== undefined ? { high: overrides.high } : {}),
+      ...(overrides.medium !== undefined ? { medium: overrides.medium } : {}),
+      ...(overrides.low !== undefined ? { low: overrides.low } : {}),
+      ...(agents.high ? { highAgentType: agents.high } : {}),
+      ...(agents.medium ? { mediumAgentType: agents.medium } : {}),
+      ...(agents.low ? { lowAgentType: agents.low } : {}),
     };
   }
 
@@ -114,18 +124,21 @@ export function AdaptiveModelSettingsSection({ adaptive }: AdaptiveModelSettings
     save({ ...currentConfig(), enabled: next }, () => setEnabled(previous));
   }
 
-  function handleOverrideChange(tier: Tier, value: string) {
+  function handleOverrideChange(tier: Tier, agentType: string, value: string) {
     const previous = overrides;
-    // The Select cannot hold an empty value, so DERIVED stands in for "unset".
-    const nextOverrides = { ...overrides, [tier]: value === DERIVED ? undefined : value };
+    const previousAgents = agents;
+    const nextOverrides = { ...overrides, [tier]: value };
     setOverrides(nextOverrides);
-
-    const next: AdaptiveModelConfig = { enabled };
-    for (const key of TIERS) {
-      const model = nextOverrides[key];
-      if (model) next[key] = model;
-    }
-    save(next, () => setOverrides(previous));
+    setAgents({ ...agents, [tier]: value ? (agentType as AgentType) : undefined });
+    const next: AdaptiveModelConfig = {
+      ...currentConfig(),
+      [tier]: value,
+      [`${tier}AgentType`]: value ? (agentType as AgentType) : undefined,
+    };
+    save(next, () => {
+      setOverrides(previous);
+      setAgents(previousAgents);
+    });
   }
 
   return (
@@ -198,12 +211,12 @@ export function AdaptiveModelSettingsSection({ adaptive }: AdaptiveModelSettings
             ) : null}
 
             {TIERS.map((tier) => (
-              <div key={tier} className="flex items-center justify-between gap-4 border-b py-2.5">
+              <div
+                key={tier}
+                className="flex flex-wrap items-center justify-between gap-4 border-b py-2.5"
+              >
                 <div className="min-w-0">
-                  <label
-                    htmlFor={`adaptive-models-${tier}`}
-                    className="flex items-center gap-2 text-sm font-normal"
-                  >
+                  <label className="flex items-center gap-2 text-sm font-normal">
                     {t(`settings.adaptiveModels.tiers.${tier}`)}
                     <Badge variant="secondary" className="font-mono text-[10px]">
                       {plan.tiers[tier]}
@@ -213,26 +226,25 @@ export function AdaptiveModelSettingsSection({ adaptive }: AdaptiveModelSettings
                     {t(`settings.adaptiveModels.tiers.${tier}Description`)}
                   </p>
                 </div>
-                <Select
-                  value={overrides[tier] ?? DERIVED}
-                  onValueChange={(value) => handleOverrideChange(tier, value)}
+                <div
+                  data-testid={`adaptive-models-${tier}-select`}
+                  className="max-w-full min-w-0 shrink-0"
                 >
-                  <SelectTrigger
-                    id={`adaptive-models-${tier}`}
-                    data-testid={`adaptive-models-${tier}-select`}
-                    className="w-52 cursor-pointer text-xs"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={DERIVED}>{t('settings.adaptiveModels.derived')}</SelectItem>
-                    {plan.supportedModels.map((model) => (
-                      <SelectItem key={model} value={model}>
-                        {model}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <AgentModelPicker
+                    initialAgentType={plan.agentType}
+                    initialModel=""
+                    agentType={overrides[tier] ? (agents[tier] ?? plan.agentType) : plan.agentType}
+                    model={overrides[tier] ?? ''}
+                    modelGroups={groups}
+                    defaultOptionLabel={t('settings.adaptiveModels.derived')}
+                    ariaLabel={t(`settings.adaptiveModels.tiers.${tier}`)}
+                    mode="settings"
+                    saving={isPending}
+                    onSave={async (agentType, model) => {
+                      handleOverrideChange(tier, agentType, model);
+                    }}
+                  />
+                </div>
               </div>
             ))}
           </>

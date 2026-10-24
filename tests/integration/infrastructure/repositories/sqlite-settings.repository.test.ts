@@ -33,6 +33,26 @@ describe('SQLiteSettingsRepository', () => {
   let db: Database.Database;
   let repository: SQLiteSettingsRepository;
 
+  it('persists adaptive provider/model pairs and clears the provider with an empty model', async () => {
+    const settings = createTestSettings();
+    settings.models.adaptive = {
+      enabled: true,
+      high: 'codex-profile:deepseek',
+      highAgentType: AgentType.CodexCli,
+      low: 'deepseek/flash',
+      lowAgentType: AgentType.OpenRouter,
+    };
+    await repository.initialize(settings);
+    expect((await repository.load())?.models.adaptive).toEqual(settings.models.adaptive);
+    settings.models.adaptive.low = '';
+    await repository.update(settings);
+    expect((await repository.load())?.models.adaptive).toEqual({
+      enabled: true,
+      high: 'codex-profile:deepseek',
+      highAgentType: AgentType.CodexCli,
+    });
+  });
+
   it('persists and clears copy paths through the real migrated settings table', async () => {
     const settings = createTestSettings();
     settings.worktree = { copyPaths: [' assets/ '], postCreateCommand: 'dotnet build' };

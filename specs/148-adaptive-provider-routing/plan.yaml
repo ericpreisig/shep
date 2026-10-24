@@ -1,0 +1,59 @@
+name: adaptive-provider-routing
+relatedFeatures:
+- 144-multiple-agent-providers
+- 145-codex-profile-models
+technologies:
+- TypeScript
+- React
+- SQLite
+- TypeSpec
+relatedLinks: []
+openQuestions: []
+summary: Select and execute an explicit provider/model pair for each adaptive complexity
+  tier.
+phases:
+- id: phase-1
+  name: Provider-aware contract and runtime (RED-GREEN-REFACTOR)
+  parallel: false
+  taskIds:
+  - task-1
+- id: phase-2
+  name: Reuse multi-provider tier picker (RED-GREEN-REFACTOR)
+  parallel: false
+  taskIds:
+  - task-2
+- id: phase-3
+  name: Verify and deploy (RED-GREEN-REFACTOR)
+  parallel: false
+  taskIds:
+  - task-3
+filesToCreate:
+- packages/core/src/infrastructure/persistence/sqlite/migrations/179-add-adaptive-tier-agents.ts
+filesToModify:
+- tsp/domain/entities/settings.tsp
+- packages/core/src/infrastructure/services/agents/feature-agent/nodes/adaptive-task-routing.ts
+- packages/core/src/infrastructure/services/agents/feature-agent/nodes/implement.node.ts
+- src/presentation/web/components/features/settings/adaptive-model-settings-section.tsx
+- src/presentation/web/components/features/settings/AgentModelPicker/index.tsx
+content: '## Clean Architecture
+
+  TypeSpec defines optional per-tier agent types alongside existing model strings.
+  Additive SQLite columns preserve old settings. Resolve selected executors through
+  IAgentExecutorProvider, using the matching stored provider config. Worker wiring
+  preserves feature context and checks its space policy.
+
+
+  ## RED-GREEN-REFACTOR
+
+  Add failing catalog, stale-label, reset, settings round-trip, credential isolation
+  and runtime dispatch tests. Implement the minimal extension to existing selectors
+  and routing. Reuse current handoffs, batching, cancellation and final validation.
+
+
+  ## Validation
+
+  Run affected tests on Node 24, typecheck, scoped lint and CLI/web builds. Inspect
+  actual French UI without disturbing active workers. Keep default provider/model
+  and enabled state unchanged.
+
+  '

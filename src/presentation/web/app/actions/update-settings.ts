@@ -60,6 +60,13 @@ export async function updateSettingsAction(
       current as unknown as Record<string, unknown>,
       partial as DeepPartial<Record<string, unknown>>
     ) as Settings;
+    // Empty model is the explicit reset signal; deepMerge deliberately ignores undefined.
+    for (const tier of ['high', 'medium', 'low'] as const) {
+      if (partial.models?.adaptive?.[tier] === '' && merged.models.adaptive) {
+        delete merged.models.adaptive[tier];
+        delete merged.models.adaptive[`${tier}AgentType`];
+      }
+    }
     if (partial.agent) {
       const type = partial.agent.type ?? current.agent.type;
       merged.agent = {

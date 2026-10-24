@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { AdaptiveModelSettingsSection } from './adaptive-model-settings-section';
+import { AgentType } from '@shepai/core/domain/generated/output';
 
 const meta: Meta<typeof AdaptiveModelSettingsSection> = {
   title: 'Settings/AdaptiveModelSettingsSection',
@@ -28,6 +29,19 @@ export const Enabled: Story = {
 export const WithTierOverride: Story = {
   args: {
     adaptive: { enabled: true, low: 'claude-haiku-4-5' },
+  },
+};
+
+/** A missing/default-catalog model still renders while its provider is selectable. */
+export const MultipleProviders: Story = {
+  args: {
+    adaptive: {
+      enabled: true,
+      high: 'codex-profile:deepseek',
+      highAgentType: AgentType.CodexCli,
+      low: 'deepseek/deepseek-v4.1-flash-1017',
+      lowAgentType: AgentType.OpenRouter,
+    },
   },
 };
 

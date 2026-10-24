@@ -1,5 +1,6 @@
 import { StateGraph, START, END, type BaseCheckpointSaver } from '@langchain/langgraph';
 import type { IAgentExecutor } from '@/application/ports/output/agents/agent-executor.interface.js';
+import type { IAgentExecutorProvider } from '@/application/ports/output/agents/agent-executor-provider.interface.js';
 import { FeatureAgentAnnotation, type FeatureAgentState } from './state.js';
 import { createAnalyzeNode } from './nodes/analyze.node.js';
 import { createRequirementsNode } from './nodes/requirements.node.js';
@@ -35,6 +36,7 @@ export { FeatureAgentAnnotation, type FeatureAgentState } from './state.js';
  */
 export interface FeatureAgentGraphDeps {
   executor: IAgentExecutor;
+  implementationExecutorProvider?: IAgentExecutorProvider;
   mergeNodeDeps?: Omit<MergeNodeDeps, 'executor'>;
   /**
    * When provided (and merge is wired), enables the post-merge extract_memory
@@ -242,7 +244,10 @@ export function createFeatureAgentGraph(
     .addNode('plan', checkpointed('plan', createPlanNode(executor, selectProjectMemory)))
     .addNode(
       'implement',
-      checkpointed('implement', createImplementNode(executor, selectProjectMemory))
+      checkpointed(
+        'implement',
+        createImplementNode(executor, selectProjectMemory, deps.implementationExecutorProvider)
+      )
     )
 
     // --- Validate nodes ---

@@ -15,7 +15,7 @@
  */
 
 import { TaskComplexity } from '@/domain/generated/output.js';
-import type { AdaptiveModelConfig } from '@/domain/generated/output.js';
+import type { AdaptiveModelConfig, AgentType } from '@/domain/generated/output.js';
 import {
   classifyTaskComplexity,
   isAdaptiveModelSelectionEnabled,
@@ -34,12 +34,14 @@ export interface TaskRouting {
   complexity: TaskComplexity;
   /** Undefined when routing is disabled — the caller keeps the pinned model. */
   model?: string;
+  agentType?: AgentType;
 }
 
 /** A run of consecutive tasks that share one executor call. */
 export interface TaskBatch<T> {
   /** Undefined when routing is disabled — the caller keeps the pinned model. */
   model?: string;
+  agentType?: AgentType;
   /** Highest complexity in the batch, used for logging and phase-timing labels. */
   complexity: TaskComplexity;
   tasks: T[];
@@ -78,11 +80,15 @@ const TIER_RANK: Readonly<Record<TaskComplexity, number>> = {
  */
 export function buildAdaptiveRouting(input: BuildAdaptiveRoutingInput): AdaptiveRouting {
   const { agentType, baseModel, adaptive } = input;
-  // A native profile is an atomic model/provider choice, not a tierable model id.
+  // Derived native profiles remain atomic. An explicit provider/model pair may replace one.
+  const profile = getCodexProfileName(baseModel);
+  const hasProviderOverride = (['high', 'medium', 'low'] as const).some(
+    (tier) => adaptive?.[tier]?.trim() && adaptive[`${tier}AgentType`]
+  );
   const enabled =
     isAdaptiveModelSelectionEnabled({ adaptive }) &&
     Boolean(baseModel?.trim()) &&
-    !getCodexProfileName(baseModel);
+    (!profile || hasProviderOverride);
 
   if (!enabled || !baseModel) {
     return {
@@ -99,9 +105,15 @@ export function buildAdaptiveRouting(input: BuildAdaptiveRoutingInput): Adaptive
     baseModel,
     resolve(task) {
       const complexity = classifyTaskComplexity(task);
+      const tier = complexity.toLowerCase() as 'high' | 'medium' | 'low';
+      const agentType = adaptive?.[tier]?.trim() ? adaptive[`${tier}AgentType`] : undefined;
       return {
         complexity,
-        model: resolveModelForComplexity({ baseModel, complexity, availableModels, overrides }),
+        model:
+          profile && !agentType
+            ? baseModel
+            : resolveModelForComplexity({ baseModel, complexity, availableModels, overrides }),
+        ...(agentType && { agentType }),
       };
     },
   };
@@ -141,8 +153,8 @@ export function resolvePhaseModelId(
 export function summarizeRouting(tasks: readonly RoutableTask[], routing: AdaptiveRouting): string {
   const distribution = new Map<string, number>();
   for (const task of tasks) {
-    const { complexity, model } = routing.resolve(task);
-    const key = `${complexity} → ${model}`;
+    const { complexity, model, agentType } = routing.resolve(task);
+    const key = `${complexity} → ${agentType ? `${agentType}: ` : ''}${model}`;
     distribution.set(key, (distribution.get(key) ?? 0) + 1);
   }
   return [...distribution.entries()].map(([key, count]) => `${count}× ${key}`).join(', ');
@@ -169,16 +181,21 @@ export function planTaskBatches<T extends RoutableTask>(
 
   const batches: TaskBatch<T>[] = [];
   for (const task of tasks) {
-    const { complexity, model } = routing.resolve(task);
+    const { complexity, model, agentType } = routing.resolve(task);
     const current = batches[batches.length - 1];
 
-    if (current && current.model === model) {
+    if (current && current.model === model && current.agentType === agentType) {
       current.tasks.push(task);
       if (TIER_RANK[complexity] > TIER_RANK[current.complexity]) current.complexity = complexity;
       continue;
     }
 
-    batches.push({ ...(model !== undefined && { model }), complexity, tasks: [task] });
+    batches.push({
+      ...(model !== undefined && { model }),
+      ...(agentType && { agentType }),
+      complexity,
+      tasks: [task],
+    });
   }
 
   return batches;

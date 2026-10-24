@@ -1,9 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { AgentType } from '@shepai/core/domain/generated/output';
 import { AdaptiveModelSettingsSection } from '@/components/features/settings/adaptive-model-settings-section';
 
 const mockUpdateSettingsAction = vi.fn();
 const mockGetAdaptiveModelPlan = vi.fn();
+const mockGetAllAgentModels = vi.fn();
+vi.mock('@/app/actions/get-all-agent-models', () => ({
+  getAllAgentModels: (...args: unknown[]) => mockGetAllAgentModels(...args),
+}));
 
 vi.mock('@/app/actions/update-settings', () => ({
   updateSettingsAction: (...args: unknown[]) => mockUpdateSettingsAction(...args),
@@ -32,10 +38,63 @@ const PLAN = {
 };
 
 describe('AdaptiveModelSettingsSection', () => {
+  it('keeps a stored foreign model visible even when absent from the default catalog', async () => {
+    render(
+      <AdaptiveModelSettingsSection
+        adaptive={{
+          enabled: false,
+          low: 'vendor/unlisted-123',
+          lowAgentType: AgentType.OpenRouter,
+        }}
+      />
+    );
+    const row = await screen.findByTestId('adaptive-models-low-select');
+    expect(await within(row).findByRole('combobox')).toHaveTextContent('vendor/unlisted-123');
+  });
+
+  it('selects another provider and model, then returns to derived without changing the default', async () => {
+    const user = userEvent.setup();
+    render(<AdaptiveModelSettingsSection adaptive={{ enabled: true }} />);
+    const row = await screen.findByTestId('adaptive-models-low-select');
+    const picker = within(row).getByRole('combobox');
+    await waitFor(() => expect(picker).toBeEnabled());
+    await user.click(picker);
+    await user.click(await screen.findByRole('button', { name: 'OpenRouter' }));
+    await user.click(await screen.findByRole('button', { name: /DeepSeek Flash/ }));
+    await waitFor(() =>
+      expect(mockUpdateSettingsAction).toHaveBeenCalledWith({
+        models: {
+          adaptive: { enabled: true, low: 'deepseek/flash', lowAgentType: AgentType.OpenRouter },
+        },
+      })
+    );
+    await waitFor(() => expect(picker).toBeEnabled());
+    await user.click(picker);
+    await user.click(await screen.findByRole('button', { name: /derived/i }));
+    await waitFor(() =>
+      expect(mockUpdateSettingsAction).toHaveBeenLastCalledWith({
+        models: { adaptive: expect.objectContaining({ enabled: true, low: '' }) },
+      })
+    );
+    expect(picker).toHaveTextContent(/derived/i);
+    expect(screen.getByTestId('adaptive-model-settings-section')).toBeVisible();
+  });
   beforeEach(() => {
     vi.clearAllMocks();
     mockUpdateSettingsAction.mockResolvedValue({ success: true });
     mockGetAdaptiveModelPlan.mockResolvedValue({ plan: PLAN });
+    mockGetAllAgentModels.mockResolvedValue([
+      {
+        agentType: 'claude-code',
+        label: 'Claude Code',
+        models: PLAN.supportedModels.map((id) => ({ id, displayName: id, description: '' })),
+      },
+      {
+        agentType: 'openrouter',
+        label: 'OpenRouter',
+        models: [{ id: 'deepseek/flash', displayName: 'DeepSeek Flash', description: '' }],
+      },
+    ]);
   });
 
   it('renders with the toggle off when nothing is configured', async () => {

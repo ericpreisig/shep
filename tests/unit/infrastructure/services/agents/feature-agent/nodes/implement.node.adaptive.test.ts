@@ -13,7 +13,7 @@ import type {
   IAgentExecutor,
   AgentExecutionOptions,
 } from '@/application/ports/output/agents/agent-executor.interface.js';
-import type { AgentType, Settings } from '@/domain/generated/output.js';
+import { AgentType, type Settings } from '@/domain/generated/output.js';
 import type { FeatureAgentState } from '@/infrastructure/services/agents/feature-agent/state.js';
 
 const { mockReadFileSync, mockWriteFileSync, mockMkdirSync } = vi.hoisted(() => ({
@@ -141,6 +141,38 @@ function settingsWithAdaptive(adaptive: Settings['models']['adaptive']): void {
 }
 
 describe('implement node — adaptive model selection', () => {
+  it.each([false, true])(
+    'executes the selected provider for sequential/parallel=%s',
+    async (parallel) => {
+      settingsWithAdaptive({
+        enabled: true,
+        low: 'deepseek/flash',
+        lowAgentType: AgentType.OpenRouter,
+      });
+      stubSpecFiles(
+        planYaml(parallel),
+        tasksYaml([
+          { id: 'task-1', complexity: 'High' },
+          { id: 'task-2', complexity: 'Low' },
+        ])
+      );
+      const { executor, calls } = makeExecutor();
+      const other = {
+        ...executor,
+        agentType: AgentType.OpenRouter,
+        execute: vi.fn<IAgentExecutor['execute']>(async () => ({ result: 'provider done' })),
+      };
+      const provider = { getExecutor: vi.fn(async () => other) };
+      await createImplementNode(executor, undefined, provider)(makeState('codex-profile:deepseek'));
+      expect(provider.getExecutor).toHaveBeenCalledWith(AgentType.OpenRouter);
+      expect(other.execute).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(other.execute).mock.calls[0]?.[1]).toMatchObject({
+        model: 'deepseek/flash',
+      });
+      expect(calls.every((options) => options.model === 'codex-profile:deepseek')).toBe(true);
+      expect(calls).toHaveLength(parallel ? 2 : 1);
+    }
+  );
   beforeEach(() => {
     vi.clearAllMocks();
     mockHasSettings.mockReturnValue(false);

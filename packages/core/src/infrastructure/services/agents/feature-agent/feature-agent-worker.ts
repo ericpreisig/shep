@@ -403,6 +403,20 @@ export async function runWorker(args: WorkerArgs): Promise<void> {
 
   const graphDeps: FeatureAgentGraphDeps = {
     executor,
+    implementationExecutorProvider: {
+      getExecutor: async (agentType) => {
+        const environment = await container
+          .resolve(ResolveSpaceEnvironmentUseCase)
+          .execute(args.repo, agentType);
+        if (environment.agentRefusal) throw new Error(environment.agentRefusal);
+        return new FeatureContextExecutor(
+          await executorProvider.getExecutor(agentType),
+          featureRepository,
+          args.featureId,
+          container.resolve<IInteractiveMessageRepository>('IInteractiveMessageRepository')
+        );
+      },
+    },
     selectProjectMemory,
     checkpoints,
     mergeNodeDeps: {

@@ -33,6 +33,23 @@ function makeFactory(): IAgentExecutorFactory {
 }
 
 describe('GetAdaptiveModelPlanUseCase', () => {
+  it('does not describe the same model on another provider as a single-provider no-op', async () => {
+    vi.mocked(repository.load).mockResolvedValue(
+      makeSettings((s) => {
+        s.models.adaptive = {
+          enabled: true,
+          low: s.models.default,
+          lowAgentType: AgentType.OpenRouter,
+        };
+      })
+    );
+    vi.mocked(factory.resolveAdaptiveModelPlan).mockReturnValue({
+      high: 'claude-opus-5',
+      medium: 'claude-opus-5',
+      low: 'claude-opus-5',
+    });
+    expect((await useCase.execute()).degradesToSingleModel).toBe(false);
+  });
   let repository: ISettingsRepository;
   let factory: IAgentExecutorFactory;
   let useCase: GetAdaptiveModelPlanUseCase;

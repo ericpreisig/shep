@@ -597,6 +597,20 @@ describe('AgentExecutorFactory - LlmProxy', () => {
 });
 
 describe('AgentExecutorFactory - resolveAdaptiveModelPlan', () => {
+  it('previews profile derivation consistently with explicit provider overrides', () => {
+    const factory = new AgentExecutorFactory(vi.fn());
+    expect(
+      factory.resolveAdaptiveModelPlan(AgentType.CodexCli, 'codex-profile:deepseek', {
+        low: 'foreign-model',
+      }).low
+    ).toBe('codex-profile:deepseek');
+    expect(
+      factory.resolveAdaptiveModelPlan(AgentType.CodexCli, 'codex-profile:deepseek', {
+        low: 'foreign-model',
+        lowAgentType: AgentType.OpenRouter,
+      }).low
+    ).toBe('foreign-model');
+  });
   const factory = new AgentExecutorFactory(vi.fn());
 
   it('spreads an Opus pin across the Claude tiers for claude-code', () => {

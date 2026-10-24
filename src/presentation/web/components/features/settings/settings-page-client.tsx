@@ -907,7 +907,12 @@ export function SettingsPageClient({
           id="section-adaptive-models"
           className="grid scroll-mt-32 grid-cols-1 gap-x-5 rounded-lg lg:grid-cols-[minmax(0,1fr)_280px]"
         >
-          <AdaptiveModelSettingsSection adaptive={settings.models.adaptive} />
+          <AdaptiveModelSettingsSection
+            adaptive={settings.models.adaptive}
+            agentType={settings.agent.type}
+            model={settings.models.default}
+            providersKey={settings.agentProviders?.map((provider) => provider.type).join(',')}
+          />
           <SectionHint
             links={[
               {

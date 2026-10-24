@@ -1,0 +1,5 @@
+## Technical Decisions
+Keep legacy high/medium/low strings and add optional highAgentType/mediumAgentType/lowAgentType. Reuse AgentModelPicker with preloaded groups and an inherited-model option. Model labels fall back to the stored identifier. Clear a model and its agent together in the existing settings action. Explicit provider choices may override a native profile without passing a foreign raw model into its original executor. Profile derivation stays atomic.
+
+## Validation Evidence
+435 tests passed across the affected picker, routing, provider, mapper, CLI, domain and real SQLite suites. A further 107 graph, worker, feature-context and settings regressions passed, including the new cross-provider preview check (533 unique tests). TypeScript, scoped ESLint, TypeSpec and both CLI/web builds passed. In the deployed French UI the stale Low model has a visible label, all 12 offered provider groups are accessible, and OpenRouter lists 469 searchable models including DeepSeek V4.1 Flash 1017. Browsing did not change existing settings. Three captured workers remained running while one completed naturally.

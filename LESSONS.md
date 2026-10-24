@@ -1,5 +1,12 @@
 # Lessons Learned
 
+## Adaptive choices must retain their provider
+
+Use the shared multi-provider picker for tier overrides. Persist provider and model
+together and dispatch through that provider's executor. A saved model missing from
+the active catalog must still have a visible label; returning to derived must clear
+both fields in persistence.
+
 ## Publish this personal fork on main
 
 Eric wants the changes in his personal fork published on `main` unless he
