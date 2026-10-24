@@ -9,6 +9,7 @@ enum:
   - gemini-cli
   - cursor
   - cline
+  - opencode
   - openrouter
   - together-ai
   - ollama
