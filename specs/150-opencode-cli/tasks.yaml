@@ -1,0 +1,71 @@
+name: opencode-cli
+relatedFeatures:
+- 145-codex-profile-models
+- 148-adaptive-provider-routing
+technologies:
+- TypeScript
+- TypeSpec
+- OpenCode CLI v2
+- Agent Client Protocol
+relatedLinks:
+- title: OpenCode CLI
+  url: https://opencode.ai/v2/docs/cli/commands/
+- title: Free models and Go
+  url: https://opencode.ai/v2/docs/console/models/
+openQuestions: []
+summary: Add OpenCode as a selectable coding agent, with streaming, real tools, model
+  discovery, task chat and resume.
+totalEstimate: 3h
+tasks:
+- id: task-1
+  title: Implement streaming, usage, error handling and full model IDs
+  description: Implement streaming, usage, error handling and full model IDs
+  state: Done
+  dependencies: []
+  acceptanceCriteria:
+  - Implement streaming, usage, error handling and full model IDs
+  tdd:
+    red:
+    - Add failing behavioral tests for the phase.
+    green:
+    - Implement through existing catalog, process and ACP seams.
+    refactor:
+    - Remove duplicated logic and preserve existing providers.
+  estimatedEffort: 45m
+- id: task-2
+  title: Wire provider selection, installer, resume and ACP chat
+  description: Wire provider selection, installer, resume and ACP chat
+  state: Done
+  dependencies:
+  - task-1
+  acceptanceCriteria:
+  - Wire provider selection, installer, resume and ACP chat
+  tdd:
+    red:
+    - Add failing behavioral tests for the phase.
+    green:
+    - Implement through existing catalog, process and ACP seams.
+    refactor:
+    - Remove duplicated logic and preserve existing providers.
+  estimatedEffort: 45m
+- id: task-3
+  title: Verify free tools and installed selection; deploy, commit and push
+  description: Verify free tools and installed selection; deploy, commit and push
+  state: Done
+  dependencies:
+  - task-2
+  acceptanceCriteria:
+  - Verify free tools and installed selection; deploy, commit and push
+  tdd:
+    red:
+    - Add failing behavioral tests for the phase.
+    green:
+    - Implement through existing catalog, process and ACP seams.
+    refactor:
+    - Remove duplicated logic and preserve existing providers.
+  estimatedEffort: 45m
+content: '## Acceptance
+
+  Use free OpenCode now and preserve native Go model IDs and authentication for later.
+
+  '

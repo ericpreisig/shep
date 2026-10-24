@@ -43,6 +43,8 @@ import { OllamaExecutorService } from './executors/ollama-executor.service.js';
 import { LlmProxyExecutorService } from './executors/llmproxy-executor.service.js';
 import { ClineExecutorService } from './executors/cline-executor.service.js';
 import { KimiCodeExecutorService } from './executors/kimi-code-executor.service.js';
+import { OpenCodeExecutorService } from './executors/opencode-executor.service.js';
+import { OpenCodeInteractiveExecutor } from './executors/opencode-interactive-executor.service.js';
 import type { SpawnFunction } from './types.js';
 import { getModelsForAgent } from './agent-model-catalog.js';
 import { listAgentDescriptors } from '../../../../domain/shared/agent-catalog.js';
@@ -75,6 +77,7 @@ const INTERACTIVE_EXECUTORS: Partial<
   [AgentType.Cursor]: (spawn) => new CursorInteractiveExecutor(spawn),
   [AgentType.CodexCli]: (spawn, auth) =>
     new CodexCliInteractiveExecutor(new CodexCliExecutorService(spawn, auth)),
+  [AgentType.OpenCode]: (spawn) => new OpenCodeInteractiveExecutor(spawn),
 };
 
 /**
@@ -146,6 +149,9 @@ export class AgentExecutorFactory implements IAgentExecutorFactory {
         break;
       case 'cline':
         executor = new ClineExecutorService(this.spawn);
+        break;
+      case 'opencode':
+        executor = new OpenCodeExecutorService(this.spawn);
         break;
       case 'kimi-code':
         executor = new KimiCodeExecutorService(this.spawn, _authConfig);

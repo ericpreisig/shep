@@ -105,6 +105,7 @@ produces the "what do I have to touch" list.
 | `cursor` | Cursor CLI | CLI | `cursor-agent` | `cursor-cli` | Supported |
 | `gemini-cli` | Gemini CLI | CLI | `gemini` | `gemini-cli` | Supported |
 | `cline` | Cline | CLI | `cline` | — | Supported |
+| `opencode` | OpenCode | CLI | `opencode` | `opencode` | Supported (native free models and connected Go) |
 | `openrouter` | OpenRouter | SDK | — | — | Supported (API key) |
 | `together-ai` | Together AI | SDK | — | — | Supported (API key) |
 | `ollama` | Ollama | SDK | — | — | Supported |

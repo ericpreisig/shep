@@ -68,3 +68,15 @@ export const DevAgentIcon: Story = {
     );
   },
 };
+
+export const OpenCodeIcon: Story = {
+  render: () => {
+    const Icon = getAgentTypeIcon('opencode');
+    return (
+      <div className="flex items-center gap-3">
+        <Icon className="h-10 w-10" />
+        <span>OpenCode</span>
+      </div>
+    );
+  },
+};

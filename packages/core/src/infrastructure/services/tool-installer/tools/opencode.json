@@ -1,0 +1,32 @@
+{
+  "name": "OpenCode",
+  "summary": "Native coding agent with free models and OpenCode Go support",
+  "description": "OpenCode CLI reads and edits code, runs commands and supports native free models and connected Go subscriptions. Connect paid providers in OpenCode only when needed.",
+  "tags": ["cli-agent"],
+  "author": "Anomaly",
+  "website": "https://opencode.ai",
+  "platforms": ["linux", "darwin", "win32"],
+  "iconUrl": "https://cdn.simpleicons.org/opencode",
+  "binary": "opencode",
+  "packageManager": "npm",
+  "commands": {
+    "linux": "npm install -g @opencode/cli",
+    "darwin": "npm install -g @opencode/cli",
+    "win32": "npm install -g @opencode/cli"
+  },
+  "timeout": 300000,
+  "documentationUrl": "https://opencode.ai/v2/docs/",
+  "verifyCommand": "opencode --version",
+  "autoInstall": true,
+  "openDirectory": "cd {dir} && exec opencode",
+  "spawnOptions": {
+    "shell": true,
+    "stdio": "inherit",
+    "detached": false
+  },
+  "terminalCommand": {
+    "linux": "x-terminal-emulator -e bash -c 'cd {dir} && exec opencode'",
+    "darwin": "open -a Terminal.app bash -c 'cd {dir} && exec opencode'",
+    "win32": "start pwsh.exe 'cd {dir} && opencode'"
+  }
+}

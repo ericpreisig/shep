@@ -1,0 +1,89 @@
+name: opencode-cli
+relatedFeatures:
+- 145-codex-profile-models
+- 148-adaptive-provider-routing
+technologies:
+- TypeScript
+- TypeSpec
+- OpenCode CLI v2
+- Agent Client Protocol
+relatedLinks:
+- title: OpenCode CLI
+  url: https://opencode.ai/v2/docs/cli/commands/
+- title: Free models and Go
+  url: https://opencode.ai/v2/docs/console/models/
+openQuestions: []
+summary: Add OpenCode as a selectable coding agent, with streaming, real tools, model
+  discovery, task chat and resume.
+phases:
+- id: phase-1
+  name: Native executor and model catalog
+  taskIds:
+  - task-1
+  parallel: false
+- id: phase-2
+  name: Catalog, factory, ACP chat and existing pickers
+  taskIds:
+  - task-2
+  parallel: false
+- id: phase-3
+  name: Live free verification, deployment and publication
+  taskIds:
+  - task-3
+  parallel: false
+content: '## TDD
+
+  Each phase starts with behavior regressions (RED), adds the minimal implementation
+  (GREEN), and reuses existing helpers (REFACTOR). Validate the real native CLI in
+  a disposable repository before publishing.
+
+
+  ## Clean Architecture
+
+  The domain catalog and TypeSpec enum describe the provider. Infrastructure implements
+  the existing application ports; presentation reuses catalog-driven pickers and icons.
+  No provider SDK or agent dispatch is introduced in application use cases.
+
+  '
+filesToCreate:
+- packages/core/src/infrastructure/services/agents/common/model-catalogs/opencode-model-catalog.service.ts
+- packages/core/src/infrastructure/services/agents/common/executors/opencode-executor.service.ts
+- packages/core/src/infrastructure/services/agents/common/executors/opencode-interactive-executor.service.ts
+- packages/core/src/infrastructure/services/tool-installer/tools/opencode.json
+- src/presentation/web/public/icons/agents/opencode.svg
+- tests/unit/infrastructure/services/agents/model-catalogs/opencode-model-catalog.service.test.ts
+- tests/unit/infrastructure/services/agents/executors/opencode-executor.test.ts
+- tests/unit/infrastructure/services/agents/executors/opencode-interactive-executor.test.ts
+- specs/150-opencode-cli/spec.yaml
+- specs/150-opencode-cli/research.yaml
+- specs/150-opencode-cli/plan.yaml
+- specs/150-opencode-cli/tasks.yaml
+- specs/150-opencode-cli/feature.yaml
+- specs/150-opencode-cli/contracts/.gitkeep
+- specs/150-opencode-cli/evidence/native-free-smoke.json
+filesToModify:
+- AGENTS.md
+- tsp/common/enums/agent-config.tsp
+- packages/core/src/domain/generated/output.ts
+- packages/core/src/domain/shared/agent-catalog.ts
+- packages/core/src/domain/shared/agent-resume-descriptor.ts
+- packages/core/src/infrastructure/services/agents/common/agent-executor-factory.service.ts
+- packages/core/src/infrastructure/services/agents/common/model-catalogs/model-catalog-registry.ts
+- packages/core/src/infrastructure/services/agents/common/executors/acp/acp-interactive-executor.ts
+- packages/core/src/infrastructure/services/agents/common/executors/acp/acp-interactive-session.ts
+- src/presentation/web/components/common/feature-node/agent-type-icons.tsx
+- src/presentation/web/components/common/feature-node/agent-type-icons.stories.tsx
+- src/presentation/web/components/features/settings/agent-settings-section.tsx
+- src/presentation/web/components/features/settings/agent-settings-section.stories.tsx
+- tests/unit/domain/shared/agent-resume-descriptor.test.ts
+- tests/unit/infrastructure/services/agents/model-catalogs/model-catalog-registry.test.ts
+- tests/unit/infrastructure/services/agents/agent-executor-factory.test.ts
+- translations/ar/tui.json
+- translations/de/tui.json
+- translations/en/tui.json
+- translations/es/tui.json
+- translations/fr/tui.json
+- translations/he/tui.json
+- translations/pt/tui.json
+- translations/ru/tui.json
+- translations/uk/tui.json

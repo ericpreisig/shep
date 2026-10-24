@@ -44,6 +44,7 @@ const RESUME_BINARIES: Partial<Record<AgentType, string>> = {
   // Kimi's `--resume <id>` is an alias of `--session <id>`, which both creates
   // and reopens a session.
   [AgentType.KimiCode]: 'kimi',
+  [AgentType.OpenCode]: 'opencode',
 };
 
 /** How to relaunch a session. */
@@ -96,7 +97,7 @@ export function buildAgentResumeDescriptor(
   const normalizedCwd = normalizePath(cwd);
   if (normalizedCwd === '') return null;
 
-  const args = [RESUME_FLAG, sessionId];
+  const args = [agentType === AgentType.OpenCode ? '--session' : RESUME_FLAG, sessionId];
   const displayCommand = `${binary} ${args.join(' ')}`;
 
   return {

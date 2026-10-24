@@ -50,6 +50,10 @@ export interface AcpAgentProfile {
   launchCommand(): { command: string; args: string[] };
   /** Translate a Shep model id to the agent's model value. Identity when absent. */
   toAgentModel?(model: string): string;
+  /** Native default when the caller does not select a model. */
+  readonly defaultModel?: string;
+  /** Fail instead of switching to a potentially billable default model. */
+  readonly requireRequestedModel?: boolean;
   /**
    * Answer a permission request the agent-specific way, or return undefined
    * to let the session approve it once. For requests that are not tool

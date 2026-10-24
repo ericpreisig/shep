@@ -14,6 +14,7 @@ describe('createDefaultModelCatalogs', () => {
   it.each([
     [AgentType.CodexCli, 'codex'],
     [AgentType.Cursor, 'cursor-agent'],
+    [AgentType.OpenCode, 'opencode'],
   ])('lists %s models through the injected ExecFunction', async (agentType, binary) => {
     const exec = vi.fn().mockResolvedValue({ stdout: '', stderr: '' });
     const catalogs = createDefaultModelCatalogs(exec);

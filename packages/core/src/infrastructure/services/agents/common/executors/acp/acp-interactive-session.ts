@@ -220,11 +220,18 @@ export class AcpInteractiveSession implements InteractiveAgentSessionHandle {
 
   /** Select the requested model when the agent offers it; otherwise say so. */
   private async applyModel(configOptions: SessionConfigOption[]): Promise<void> {
-    const requested = this.options.model;
+    const requested = this.options.model ?? this.profile.defaultModel;
     if (!requested) return;
     const wanted = this.profile.toAgentModel?.(requested) ?? requested;
     const choice = chooseModel(configOptions, wanted, this.profile.agentName);
-    if (choice.kind === 'unavailable') this.notices.push(choice.notice);
+    if (choice.kind === 'unavailable') {
+      if (this.profile.requireRequestedModel) {
+        throw new Error(
+          `${this.profile.agentName} cannot select requested model "${wanted}". Connect its provider or choose an available model.`
+        );
+      }
+      this.notices.push(choice.notice);
+    }
     if (choice.kind !== 'set') return;
     try {
       await this.connection.agent.request('session/set_config_option', {
@@ -234,7 +241,7 @@ export class AcpInteractiveSession implements InteractiveAgentSessionHandle {
       });
     } catch (error) {
       // A model that cannot be selected is not worth losing the chat over.
-      if (this.agentProcess.deathError) throw error;
+      if (this.agentProcess.deathError || this.profile.requireRequestedModel) throw error;
       this.notices.push(
         `${this.profile.agentName} could not switch to model "${wanted}" ` +
           `(${describeRequestError(error)}) — using its default.`

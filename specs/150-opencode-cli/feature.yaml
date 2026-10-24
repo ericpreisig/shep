@@ -1,0 +1,51 @@
+feature:
+  id: 150-opencode-cli
+  name: opencode-cli
+  number: 150
+  branch: main
+  lifecycle: implementation
+  createdAt: '2026-10-24T07:07:51.053502+00:00'
+status:
+  phase: ready-for-review
+  progress:
+    total: 3
+    completed: 3
+    percentage: 100
+  currentTask: null
+  lastUpdated: '2026-10-24T07:32:06.784734+00:00'
+  lastUpdatedBy: shep-kit:implement
+validation:
+  lastRun: '2026-10-24T07:32:06.784734+00:00'
+  gatesPassed:
+  - unit-tests-246
+  - typescript-core
+  - typescript-web
+  - eslint
+  - cli-build
+  - production-web-build
+  - native-free-file-and-shell-tools
+  - native-free-session-resume
+  - native-free-acp-chat-two-turns
+  - go-provider-routing-regressions
+  - deployed-picker-and-persisted-free-default
+  autoFixesApplied: []
+tasks:
+  current: null
+  blocked: []
+  failed: []
+checkpoints:
+- phase: feature-created
+  completedAt: '2026-10-24T07:07:51.053502+00:00'
+  completedBy: shep-kit:new-feature
+- phase: research-complete
+  completedAt: '2026-10-24T07:07:51.053502+00:00'
+  completedBy: shep-kit:research
+- phase: planning-complete
+  completedAt: '2026-10-24T07:07:51.053502+00:00'
+  completedBy: shep-kit:plan
+- phase: implementation-complete
+  completedAt: '2026-10-24T07:32:06.784734+00:00'
+  completedBy: shep-kit:implement
+errors:
+  current: null
+  history: []

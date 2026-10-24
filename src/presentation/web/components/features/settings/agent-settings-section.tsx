@@ -36,7 +36,7 @@ const AGENT_TYPE_OPTIONS = listAgentDescriptors().map((descriptor) => ({
 }));
 
 /** Agent types that only support session-based auth (no API token). */
-const SESSION_ONLY_AGENTS = new Set<AgentType>([AgentType.CopilotCli]);
+const SESSION_ONLY_AGENTS = new Set<AgentType>([AgentType.CopilotCli, AgentType.OpenCode]);
 
 /** Agent types that require token-based auth (API key only, no CLI binary). */
 const TOKEN_REQUIRED_AGENTS = new Set<AgentType>(

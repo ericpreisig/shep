@@ -560,7 +560,7 @@ describe('AgentExecutorFactory', () => {
     it('should name the interactive agents when an agent has no interactive support', () => {
       expect(() => factory.createInteractiveExecutor(AgentType.Dev, defaultAuthConfig)).toThrow(
         "Agent type 'dev' does not support interactive sessions. " +
-          "Interactive sessions are available for: 'claude-code', 'cursor', 'codex-cli'."
+          "Interactive sessions are available for: 'claude-code', 'cursor', 'codex-cli', 'opencode'."
       );
     });
   });

@@ -1,0 +1,15 @@
+## Problem Statement
+The user wants DeepSeek V4.1 Flash Free through the real OpenCode client, selectable in Shep. The same integration must support OpenCode Go after the user subscribes and connects that account.
+
+## Success Criteria
+- Reuse the installed OpenCode v2 and existing process, catalog, picker and ACP infrastructure.
+- Provide an OpenCode agent with explicit provider/model selection; prefer opencode/deepseek-v4.1-flash-free when no model was chosen.
+- Discover the native CLI model list, including Go after authentication, without requiring paid API credentials for free models.
+- Stream actual tools, final output, session identifiers and complete per-call usage; reject failed, aborted and truncated runs.
+- Send prompts over stdin, preserve worktree cwd and support session resume, timeout and cancellation.
+- Reuse ACP for task chat and native OpenCode authentication for future Go usage.
+- Update existing UI icons/stories, installer metadata, CLI translations and regression coverage.
+- Validate a real free-model file edit and command, chat/resume, installed web selection, then commit and push on main.
+
+## Scope
+Do not purchase a subscription or replace existing feature agents. Free is the initial choice; Go is a selectable authenticated provider, with no automatic paid fallback.

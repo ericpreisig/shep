@@ -61,6 +61,10 @@ export const OpenRouter: Story = {
   },
 };
 
+export const OpenCode: Story = {
+  args: { agent: { type: AgentType.OpenCode, authMethod: AgentAuthMethod.Session } },
+};
+
 export const TogetherAi: Story = {
   args: {
     agent: {

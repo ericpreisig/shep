@@ -24,6 +24,9 @@
 
 import { AgentType } from '../generated/output';
 
+/** Free native OpenCode model; paid Go models are discovered after connecting an account. */
+export const OPENCODE_FREE_MODEL = 'opencode/deepseek-v4.1-flash-free';
+
 /** How an agent is reached. */
 export type AgentKind =
   /** A binary on PATH, driven as a subprocess. */
@@ -504,6 +507,21 @@ const VERSION_FLAG = ['--version'] as const;
  * Typed as a TOTAL Record on purpose — see the module comment.
  */
 export const AGENT_CATALOG: Record<AgentType, AgentDescriptor> = {
+  [AgentType.OpenCode]: {
+    type: AgentType.OpenCode,
+    label: 'OpenCode',
+    description: 'Native OpenCode CLI with free models and connected OpenCode Go subscriptions',
+    kind: 'cli',
+    supported: true,
+    binary: 'opencode',
+    versionArgs: ['--version'],
+    toolId: 'opencode',
+    models: [OPENCODE_FREE_MODEL],
+    order: 12,
+    requiresToken: false,
+    docsUrl: 'https://opencode.ai/v2/docs/',
+    i18nKey: 'openCode',
+  },
   [AgentType.ClaudeCode]: {
     type: AgentType.ClaudeCode,
     label: 'Claude Code',

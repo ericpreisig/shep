@@ -43,6 +43,10 @@
           "name": "Ollama",
           "description": "تشغيل نماذج LLM محلية عبر Ollama (لا يتطلب مفتاح API، يعمل على localhost)"
         },
+        "openCode": {
+          "name": "OpenCode",
+          "description": "OpenCode CLI — free models and connected Go subscriptions"
+        },
         "kimiCode": {
           "name": "Kimi Code",
           "description": "وكيل طرفية Kimi Code CLI من Moonshot AI (نماذج Kimi K)"

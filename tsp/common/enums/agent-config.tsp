@@ -83,6 +83,10 @@ enum AgentType {
   @doc("Cline multi-provider agentic coding assistant")
   Cline: "cline",
 
+  /** Native OpenCode CLI, with free models and connected OpenCode Go providers. */
+  @doc("OpenCode CLI with native free and Go model access")
+  OpenCode: "opencode",
+
   /**
    * OpenRouter API provider.
    * Supported — SDK-based executor using the Vercel AI SDK over HTTP.

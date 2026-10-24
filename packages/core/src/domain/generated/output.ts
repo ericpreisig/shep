@@ -254,6 +254,7 @@ export enum AgentType {
   GeminiCli = 'gemini-cli',
   Cursor = 'cursor',
   Cline = 'cline',
+  OpenCode = 'opencode',
   OpenRouter = 'openrouter',
   TogetherAi = 'together-ai',
   Ollama = 'ollama',

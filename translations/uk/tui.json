@@ -43,6 +43,10 @@
           "name": "Ollama",
           "description": "Запуск локальних LLM через Ollama (API-ключ не потрібен, працює на localhost)"
         },
+        "openCode": {
+          "name": "OpenCode",
+          "description": "OpenCode CLI — free models and connected Go subscriptions"
+        },
         "kimiCode": {
           "name": "Kimi Code",
           "description": "Термінальний агент Kimi Code CLI від Moonshot AI (моделі Kimi K)"

@@ -1,0 +1,43 @@
+name: opencode-cli
+relatedFeatures:
+- 145-codex-profile-models
+- 148-adaptive-provider-routing
+technologies:
+- TypeScript
+- TypeSpec
+- OpenCode CLI v2
+- Agent Client Protocol
+relatedLinks:
+- title: OpenCode CLI
+  url: https://opencode.ai/v2/docs/cli/commands/
+- title: Free models and Go
+  url: https://opencode.ai/v2/docs/console/models/
+openQuestions: []
+summary: Use the installed native OpenCode v2, not an SDK proxy, so free-client eligibility
+  and future Go authentication are preserved.
+decisions:
+- title: Native CLI execution
+  chosen: opencode run --format json --auto with prompt on stdin
+  rejected:
+  - Direct free API access from Codex
+  - New agent SDK dependency
+  rationale: The official free models require OpenCode. Native CLI owns tool execution,
+    authentication and provider routing.
+- title: Model discovery
+  chosen: TTL-cached opencode models, preserving full provider/model IDs
+  rejected:
+  - A free-only hardcoded list
+  rationale: The user explicitly requires future OpenCode Go; discover models from
+    native authenticated configuration.
+- title: Interactive task chat
+  chosen: Reuse AcpInteractiveExecutor with an OpenCode profile
+  rejected:
+  - A separate chat runtime
+  rationale: OpenCode v2 supports opencode acp and existing ACP infrastructure already
+    handles sessions and permissions.
+content: '## Evidence
+
+  Installed CLI reports v2.1.4. Its model list includes opencode/deepseek-v4.1-flash-free.
+  Go is not yet subscribed; do not make paid calls or invent credentials.
+
+  '

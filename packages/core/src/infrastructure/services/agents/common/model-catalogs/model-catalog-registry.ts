@@ -24,6 +24,10 @@ import {
 } from './codex-cli-model-catalog.service.js';
 import type { ExecFunction } from '../../../git/worktree.service.js';
 import { createExecFunction } from '../../../process/exec-function.js';
+import {
+  OpenCodeModelCatalogService,
+  createOpenCodeListModels,
+} from './opencode-model-catalog.service.js';
 
 export type ModelCatalogRegistry = ReadonlyMap<AgentType, IModelCatalog>;
 
@@ -43,6 +47,7 @@ export function createDefaultModelCatalogs(
       new ClaudeCodeModelCatalogService({ listCliModels: createClaudeListModels(exec) }),
     ],
     [AgentType.CodexCli, new CodexCliModelCatalogService(createCodexListModels(exec))],
+    [AgentType.OpenCode, new OpenCodeModelCatalogService(createOpenCodeListModels(exec))],
     // Gemini / Copilot / Kimi: add when a stable list command exists.
   ]);
 }

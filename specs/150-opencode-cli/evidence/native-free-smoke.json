@@ -1,0 +1,105 @@
+{
+  "verifiedAt": "2026-10-24T07:17:40.680Z",
+  "model": "opencode/deepseek-v4.1-flash-free",
+  "cwd": "/tmp/shep-opencode-integration-znIjjA",
+  "result": {
+    "result": "SHEP_NATIVE_FREE_OK",
+    "sessionId": "ses_e933a788fffe0ArK4I3JaF8PHO",
+    "usage": {
+      "inputTokens": 17136,
+      "outputTokens": 153,
+      "cacheReadInputTokens": 13184,
+      "cacheCreationInputTokens": 0,
+      "costUsd": 0
+    }
+  },
+  "resumed": {
+    "result": "SHEP_NATIVE_FREE_OK",
+    "sessionId": "ses_e933a788fffe0ArK4I3JaF8PHO",
+    "usage": {
+      "inputTokens": 11761,
+      "outputTokens": 61,
+      "cacheReadInputTokens": 11520,
+      "cacheCreationInputTokens": 0,
+      "costUsd": 0
+    }
+  },
+  "models": [
+    {
+      "id": "ollama/gemma4:e4b",
+      "displayName": "ollama/gemma4:e4b"
+    },
+    {
+      "id": "ollama/huihui_ai/hy-mt1.5-abliterated:1.8b",
+      "displayName": "ollama/huihui_ai/hy-mt1.5-abliterated:1.8b"
+    },
+    {
+      "id": "opencode/beam-free",
+      "displayName": "opencode/beam-free"
+    },
+    {
+      "id": "opencode/big-pickle",
+      "displayName": "opencode/big-pickle"
+    },
+    {
+      "id": "opencode/deepseek-v4.1-flash-free",
+      "displayName": "DeepSeek V4.1 Flash Free"
+    },
+    {
+      "id": "opencode/flint-40b-free",
+      "displayName": "opencode/flint-40b-free"
+    },
+    {
+      "id": "opencode/glm-5.3-flash-free",
+      "displayName": "opencode/glm-5.3-flash-free"
+    },
+    {
+      "id": "opencode/mimo-v2.6-flash-free",
+      "displayName": "opencode/mimo-v2.6-flash-free"
+    },
+    {
+      "id": "opencode/nemotron-3-ultra-free",
+      "displayName": "opencode/nemotron-3-ultra-free"
+    },
+    {
+      "id": "opencode/nemotron-3.5-lightning-free",
+      "displayName": "opencode/nemotron-3.5-lightning-free"
+    },
+    {
+      "id": "opencode/nemotron-3.5-super-vl-free",
+      "displayName": "opencode/nemotron-3.5-super-vl-free"
+    }
+  ],
+  "chatTurns": [
+    [
+      {
+        "type": "delta",
+        "content": "SHEP_CHAT_FREE_OK"
+      },
+      {
+        "type": "done",
+        "usage": {
+          "inputTokens": 84,
+          "outputTokens": 9,
+          "numTurns": 1,
+          "durationMs": 1514
+        }
+      }
+    ],
+    [
+      {
+        "type": "delta",
+        "content": "SHEP_CHAT_SECOND_OK"
+      },
+      {
+        "type": "done",
+        "usage": {
+          "inputTokens": 108,
+          "outputTokens": 9,
+          "numTurns": 1,
+          "durationMs": 1339
+        }
+      }
+    ]
+  ]
+}

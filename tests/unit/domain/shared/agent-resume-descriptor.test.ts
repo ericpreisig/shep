@@ -26,6 +26,7 @@ const EXPECTED_BINARIES: Record<AgentType, string | null> = {
   [AgentType.CodexCli]: 'codex',
   [AgentType.Cursor]: 'cursor-agent',
   [AgentType.KimiCode]: 'kimi',
+  [AgentType.OpenCode]: 'opencode',
   [AgentType.CopilotCli]: null,
   [AgentType.GeminiCli]: null,
   [AgentType.Cline]: null,
@@ -58,7 +59,10 @@ describe('buildAgentResumeDescriptor', () => {
 
       expect(descriptor).not.toBeNull();
       expect(descriptor?.binary).toBe(expectedBinary);
-      expect(descriptor?.args).toEqual(['--resume', SESSION_ID]);
+      expect(descriptor?.args).toEqual([
+        agentType === AgentType.OpenCode ? '--session' : '--resume',
+        SESSION_ID,
+      ]);
       expect(descriptor?.cwd).toBe(CWD);
       expect(supportsSessionResume(agentType)).toBe(true);
     });
