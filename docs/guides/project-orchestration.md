@@ -33,6 +33,8 @@ Codex chat uses `codex exec --json` and native thread resumption. Responses and 
 
 ## Mind map
 
+Choose **Analyze project** to read the repository's code and documentation, discover implemented capabilities and add them to the catalog with source-file evidence. This does not launch implementation tasks. Repeated analysis reuses known capabilities and keeps existing tasks and conversations. The footer records analyzed file coverage and newly added features. Source excerpts have a shared size budget; the full readable-file inventory is also supplied to the model.
+
 Open **Mind map** in the sidebar and select a project. It includes all non-deleted tasks, including completed and archived work, with links to each task and its chat.
 
 The AI receives the entire task catalog and may replace the whole nested taxonomy when new work changes its meaning. Classification runs in the background when task descriptions or membership change; **Reorganize with AI** forces a refresh. Execution dependencies are never used as edges in this view. New or omitted tasks remain visible under **À classer** until assigned to a theme.

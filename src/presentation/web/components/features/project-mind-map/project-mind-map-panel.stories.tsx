@@ -37,6 +37,12 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const CompleteProject: Story = {};
+export const AnalyzingProject: Story = {
+  args: {
+    initialData: { ...data, generating: true, analyzing: true },
+    load: async () => ({ data: { ...data, generating: true, analyzing: true } }),
+  },
+};
 export const Reorganizing: Story = {
   args: {
     initialData: { ...data, generating: true },

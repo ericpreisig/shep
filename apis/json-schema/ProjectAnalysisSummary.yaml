@@ -1,0 +1,19 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: ProjectAnalysisSummary.yaml
+type: object
+properties:
+  analyzedAt:
+    type: string
+    format: date-time
+  filesRead:
+    type: integer
+  filesExcerpted:
+    type: integer
+  featuresAdded:
+    type: integer
+required:
+  - analyzedAt
+  - filesRead
+  - filesExcerpted
+  - featuresAdded
+description: Coverage and outcome of the last successful source-code analysis

@@ -1819,6 +1819,15 @@ export type PullRequest = {
    */
   upstreamPrStatus?: PrStatus;
 };
+
+/**
+ * Provenance of a capability already implemented in the repository
+ */
+export type FeatureDiscovery = {
+  key: string;
+  evidencePaths: string[];
+  analyzedAt: any;
+};
 export enum CoordinationAction {
   Defer = 'defer',
   Continue = 'continue',
@@ -2020,6 +2029,10 @@ export type Feature = SoftDeletableEntity & {
    * All prerequisite feature IDs. Every parent must complete before this feature starts.
    */
   parentIds?: UUID[];
+  /**
+   * Evidence for a capability discovered by read-only project analysis
+   */
+  discovery?: FeatureDiscovery;
   /**
    * Durable user corrections applied when restarting this feature's worker
    */
@@ -2939,6 +2952,16 @@ export type ProjectMindMap = {
   fingerprint: string;
   topics: MindMapTopic[];
   generatedAt: any;
+};
+
+/**
+ * Coverage and outcome of the last successful source-code analysis
+ */
+export type ProjectAnalysisSummary = {
+  analyzedAt: any;
+  filesRead: integer;
+  filesExcerpted: integer;
+  featuresAdded: integer;
 };
 export enum SecurityActionCategory {
   DependencyInstall = 'DependencyInstall',

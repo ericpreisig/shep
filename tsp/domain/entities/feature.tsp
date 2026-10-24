@@ -123,6 +123,7 @@ import "../../agents/approval-gates.tsp";
 import "../value-objects/pull-request.tsp";
 import "../value-objects/attachment.tsp";
 import "../value-objects/feature-coordination.tsp";
+import "../value-objects/feature-discovery.tsp";
 
 /**
  * Feature Entity (Aggregate Root)
@@ -475,6 +476,9 @@ model Feature extends SoftDeletableEntity {
 
   @doc("All prerequisite feature IDs. Every parent must complete before this feature starts.")
   parentIds?: UUID[];
+
+  @doc("Evidence for a capability discovered by read-only project analysis")
+  discovery?: FeatureDiscovery;
 
   @doc("Durable user corrections applied when restarting this feature's worker")
   executionCorrections?: string[];

@@ -1,0 +1,50 @@
+name: project-analysis-autotask
+relatedFeatures:
+- 142-project-orchestration
+technologies:
+- TypeScript
+- React
+- SQLite
+- Codex CLI
+relatedLinks: []
+openQuestions: []
+summary: Analyze the source catalog and automatically plan new task dependencies.
+decisions:
+- title: Codex chat transport
+  chosen: Adapter around the existing Codex CLI streaming executor with exec resume per turn.
+  rejected:
+  - New provider SDK
+  - Separate authentication flow
+  rationale: Reuses installed CLI, session authentication, cancellation and subprocess diagnostics.
+- title: Dependency storage
+  chosen: Backward-compatible parentIds persisted alongside legacy parentId, with one authoritative normalizer
+    and all-parent gate checks.
+  rejected:
+  - Replace every existing contract at once
+  rationale: Old features and existing single-parent callers retain behavior while DAG callers use the
+    complete list.
+- title: Corrections
+  chosen: Stop the worker before persisting a correction and restarting the same worktree, preserving
+    completed work.
+  rejected:
+  - Two simultaneous writers in the worktree
+  rationale: User instructions become durable prompt context with an auditable record.
+- title: Semantic project map
+  chosen: Use the configured IAgentExecutorProvider to generate a persisted, versioned topic tree, normalized
+    to include every feature; render using installed React Flow.
+  rejected:
+  - Hardcoded classifier
+  - New graph dependency
+  rationale: Global regrouping can evolve without changing real dependencies or omitting old work.
+content: '## Decisions
+
+  Reuse IFileTreeReaderPort, the configured IAgentExecutorProvider and the existing map generation lease.
+  Import evidenced capabilities as completed catalog features without agent runs or worktrees. Keep provenance
+  and stable discovery keys for reanalysis. AutoTask stores a validated durable plan before materializing
+  tasks via existing creation and scheduling use cases. Existing running tasks are never reparented.
+
+
+  ## Coverage
+
+  Include the full source-file inventory and bounded source excerpts, and expose analyzed coverage. No
+  instructions embedded in repository contents override the analysis task.'

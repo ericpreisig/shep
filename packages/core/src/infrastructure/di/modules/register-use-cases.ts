@@ -186,6 +186,7 @@ import { AutoResolveMergedBranchesUseCase } from '../../../application/use-cases
 import { ReparentFeatureUseCase } from '../../../application/use-cases/features/reparent-feature.use-case.js';
 import { CorrectFeatureUseCase } from '../../../application/use-cases/features/correct-feature.use-case.js';
 import { GetProjectMindMapUseCase } from '../../../application/use-cases/mind-map/get-project-mind-map.use-case.js';
+import { AnalyzeProjectUseCase } from '../../../application/use-cases/mind-map/analyze-project.use-case.js';
 import { PrepareFeatureChatUseCase } from '../../../application/use-cases/interactive/prepare-feature-chat.use-case.js';
 import { CoordinateFeatureConflictsUseCase } from '../../../application/use-cases/features/coordinate-feature-conflicts.use-case.js';
 import { CreateApplicationUseCase } from '../../../application/use-cases/applications/create-application.use-case.js';
@@ -393,6 +394,10 @@ export function registerUseCases(container: DependencyContainer): void {
   container.registerSingleton(ReparentFeatureUseCase);
   container.registerSingleton(CorrectFeatureUseCase);
   container.registerSingleton(GetProjectMindMapUseCase);
+  container.registerSingleton(AnalyzeProjectUseCase);
+  container.register('AnalyzeProjectUseCase', {
+    useFactory: (c) => c.resolve(AnalyzeProjectUseCase),
+  });
   container.registerSingleton(PrepareFeatureChatUseCase);
   container.register('GetProjectMindMapUseCase', {
     useFactory: (c) => c.resolve(GetProjectMindMapUseCase),

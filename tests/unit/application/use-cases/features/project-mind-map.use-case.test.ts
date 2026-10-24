@@ -9,6 +9,7 @@ describe('GetProjectMindMapUseCase', () => {
       claim: vi.fn().mockResolvedValue(true),
       save: vi.fn().mockResolvedValue(undefined),
       fail: vi.fn(),
+      finishAnalysis: vi.fn(),
     };
     const features = {
       list: vi.fn().mockResolvedValue([

@@ -1,0 +1,18 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: FeatureDiscovery.yaml
+type: object
+properties:
+  key:
+    type: string
+  evidencePaths:
+    type: array
+    items:
+      type: string
+  analyzedAt:
+    type: string
+    format: date-time
+required:
+  - key
+  - evidencePaths
+  - analyzedAt
+description: Provenance of a capability already implemented in the repository

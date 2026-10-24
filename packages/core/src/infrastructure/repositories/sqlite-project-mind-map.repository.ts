@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3';
-import type { ProjectMindMap } from '../../domain/generated/output.js';
+import type { ProjectMindMap, ProjectAnalysisSummary } from '../../domain/generated/output.js';
 import type {
   IProjectMindMapRepository,
   ProjectMindMapRecord,
@@ -17,6 +17,7 @@ export class SQLiteProjectMindMapRepository implements IProjectMindMapRepository
           generating: number;
           requested_at: number;
           error: string | null;
+          analysis: string | null;
         }
       | undefined;
     return row
@@ -26,6 +27,7 @@ export class SQLiteProjectMindMapRepository implements IProjectMindMapRepository
           generating: row.generating === 1,
           attemptedAt: row.requested_at,
           ...(row.error ? { error: row.error } : {}),
+          ...(row.analysis ? { analysis: JSON.parse(row.analysis) as ProjectAnalysisSummary } : {}),
         }
       : null;
   }
@@ -57,5 +59,19 @@ export class SQLiteProjectMindMapRepository implements IProjectMindMapRepository
       WHERE repository_id = ? AND requested_fingerprint = ?`
       )
       .run(error, repositoryId, fingerprint);
+  }
+  async finishAnalysis(
+    repositoryId: string,
+    token: string,
+    analysis: ProjectAnalysisSummary
+  ): Promise<boolean> {
+    return (
+      this.db
+        .prepare(
+          `UPDATE project_mind_maps SET analysis = ?, generating = 0, error = NULL
+      WHERE repository_id = ? AND requested_fingerprint = ? AND generating = 1`
+        )
+        .run(JSON.stringify(analysis), repositoryId, token).changes === 1
+    );
   }
 }

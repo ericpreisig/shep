@@ -23,6 +23,15 @@ describe('Project mind map persistence', () => {
   });
   afterEach(() => db.close());
 
+  it('persists analysis coverage and refuses a stale analysis completion', async () => {
+    await maps.claim('repo', 'analysis:new', 1000);
+    const summary = { analyzedAt: new Date(), filesRead: 12, filesExcerpted: 12, featuresAdded: 3 };
+    expect(await maps.finishAnalysis('repo', 'analysis:old', summary)).toBe(false);
+    expect(await maps.finishAnalysis('repo', 'analysis:new', summary)).toBe(true);
+    expect((await maps.get('repo'))?.analysis).toMatchObject({ filesRead: 12, featuresAdded: 3 });
+    expect((await maps.get('repo'))?.generating).toBe(false);
+  });
+
   it('allows only one classifier and ignores late output from an expired lease', async () => {
     expect(await maps.claim('repo', 'old', 1000)).toBe(true);
     expect(await maps.claim('repo', 'new', 2000)).toBe(false);

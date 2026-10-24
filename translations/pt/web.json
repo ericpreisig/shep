@@ -2072,6 +2072,9 @@
     "taskCount_other": "{{count}} tasks",
     "chat": "Chat",
     "expandTopic": "Expand {{topic}}",
-    "collapseTopic": "Collapse {{topic}}"
+    "collapseTopic": "Collapse {{topic}}",
+    "analyzeProject": "Analyze project",
+    "analyzing": "Analyzing code and capabilities…",
+    "analysisSummary": "{{files}} files analyzed · {{added}} capabilities added"
   }
 }

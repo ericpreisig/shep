@@ -1,0 +1,74 @@
+name: project-analysis-autotask
+relatedFeatures:
+- 142-project-orchestration
+technologies:
+- TypeScript
+- React
+- SQLite
+- Codex CLI
+relatedLinks: []
+openQuestions: []
+summary: Analyze the source catalog and automatically plan new task dependencies.
+tasks:
+- id: task-1
+  title: Import evidenced capabilities and classify the complete catalog
+  description: Import evidenced capabilities and classify the complete catalog
+  state: Done
+  dependencies: []
+  acceptanceCriteria:
+  - Import evidenced capabilities and classify the complete catalog
+  tdd:
+    red:
+    - Add failing behavioral tests.
+    green:
+    - Implement using existing architectural seams.
+    refactor:
+    - Retain focused regression coverage and remove duplication.
+  estimatedEffort: 3h
+- id: task-2
+  title: Persist validated AutoTask plans, materialize children and use existing start
+    gates
+  description: Persist validated AutoTask plans, materialize children and use existing
+    start gates
+  state: InProgress
+  dependencies:
+  - task-1
+  acceptanceCriteria:
+  - Persist validated AutoTask plans, materialize children and use existing start
+    gates
+  tdd:
+    red:
+    - Add failing behavioral tests.
+    green:
+    - Implement using existing architectural seams.
+    refactor:
+    - Retain focused regression coverage and remove duplication.
+  estimatedEffort: 3h
+- id: task-3
+  title: Expose source analysis and AutoTask, verify real workflows and push verified
+    commits
+  description: Expose source analysis and AutoTask, verify real workflows and push
+    verified commits
+  state: Todo
+  dependencies:
+  - task-2
+  acceptanceCriteria:
+  - Expose source analysis and AutoTask, verify real workflows and push verified commits
+  tdd:
+    red:
+    - Add failing behavioral tests.
+    green:
+    - Implement using existing architectural seams.
+    refactor:
+    - Retain focused regression coverage and remove duplication.
+  estimatedEffort: 3h
+totalEstimate: 16h
+content: '## Acceptance Checklist
+
+  - Code analysis is available in the mind map and covers existing features.
+
+  - AutoTask creates subtasks only when useful and wires existing dependencies.
+
+  - Retry, concurrency and deferred starts are covered.
+
+  - Verification passes and coherent commits are pushed.'

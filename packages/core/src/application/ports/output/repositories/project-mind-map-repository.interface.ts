@@ -1,4 +1,7 @@
-import type { ProjectMindMap } from '../../../../domain/generated/output.js';
+import type {
+  ProjectMindMap,
+  ProjectAnalysisSummary,
+} from '../../../../domain/generated/output.js';
 
 export interface ProjectMindMapRecord {
   map: ProjectMindMap | null;
@@ -6,6 +9,7 @@ export interface ProjectMindMapRecord {
   generating: boolean;
   attemptedAt: number;
   error?: string;
+  analysis?: ProjectAnalysisSummary;
 }
 
 export interface IProjectMindMapRepository {
@@ -14,4 +18,9 @@ export interface IProjectMindMapRepository {
   claim(repositoryId: string, fingerprint: string, now: number): Promise<boolean>;
   save(map: ProjectMindMap): Promise<void>;
   fail(repositoryId: string, fingerprint: string, error: string): Promise<void>;
+  finishAnalysis(
+    repositoryId: string,
+    token: string,
+    analysis: ProjectAnalysisSummary
+  ): Promise<boolean>;
 }

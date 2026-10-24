@@ -118,6 +118,9 @@ properties:
     items:
       $ref: UUID.yaml
     description: All prerequisite feature IDs. Every parent must complete before this feature starts.
+  discovery:
+    $ref: FeatureDiscovery.yaml
+    description: Evidence for a capability discovered by read-only project analysis
   executionCorrections:
     type: array
     items:

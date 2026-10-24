@@ -1,6 +1,11 @@
 import { createHash } from 'node:crypto';
 import { inject, injectable } from 'tsyringe';
-import type { Feature, ProjectMindMap, Repository } from '../../../domain/generated/output.js';
+import type {
+  Feature,
+  ProjectMindMap,
+  Repository,
+  ProjectAnalysisSummary,
+} from '../../../domain/generated/output.js';
 import { normalizeMindMapTopics } from '../../../domain/shared/project-mind-map.js';
 import type { IRepositoryRepository } from '../../ports/output/repositories/repository-repository.interface.js';
 import type { IFeatureRepository } from '../../ports/output/repositories/feature-repository.interface.js';
@@ -36,6 +41,8 @@ export interface ProjectMindMapView {
   map: ProjectMindMap;
   generating: boolean;
   error?: string;
+  analyzing?: boolean;
+  analysis?: ProjectAnalysisSummary;
 }
 
 @injectable()
@@ -91,6 +98,8 @@ export class GetProjectMindMapUseCase {
       features,
       map,
       generating,
+      analyzing: generating && record?.requestedFingerprint?.startsWith('analysis:') === true,
+      ...(record?.analysis ? { analysis: record.analysis } : {}),
       ...(!generating && record?.error ? { error: record.error } : {}),
     };
   }

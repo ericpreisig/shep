@@ -1,0 +1,16 @@
+feature:
+  id: 143-project-analysis-autotask
+  name: project-analysis-autotask
+  number: 143
+  branch: feat/142-project-orchestration
+  lifecycle: implementation
+status:
+  phase: implementing
+  currentTask: task-2
+  progress:
+    total: 3
+    completed: 1
+    percentage: 33
+  lastUpdated: '2026-10-24T02:37:22.664928+00:00'
+  lastUpdatedBy: shep-kit:implement
+checkpoints: []

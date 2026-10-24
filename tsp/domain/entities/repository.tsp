@@ -53,3 +53,11 @@ model ProjectMindMap {
   topics: MindMapTopic[];
   generatedAt: utcDateTime;
 }
+
+@doc("Coverage and outcome of the last successful source-code analysis")
+model ProjectAnalysisSummary {
+  analyzedAt: utcDateTime;
+  filesRead: integer;
+  filesExcerpted: integer;
+  featuresAdded: integer;
+}

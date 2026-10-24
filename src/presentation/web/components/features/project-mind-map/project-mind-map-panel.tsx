@@ -28,6 +28,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import {
   getProjectMindMap,
+  analyzeProject,
   type MindMapPageData,
   type MindMapProjectOption,
 } from '@/app/actions/project-mind-map';
@@ -128,6 +129,7 @@ export function ProjectMindMapPanel({
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(!initialData);
+  const [startingAnalysis, setStartingAnalysis] = useState(false);
   const request = useRef(0);
   const initialized = useRef('');
 
@@ -244,6 +246,32 @@ export function ProjectMindMapPanel({
             ))}
           </select>
           <Button
+            size="sm"
+            disabled={!selected || startingAnalysis || view?.generating === true}
+            onClick={async () => {
+              setStartingAnalysis(true);
+              setError('');
+              try {
+                const result = await analyzeProject(selected);
+                if (result.error) setError(result.error);
+                else await refresh();
+              } catch (reason) {
+                setError(String(reason));
+              } finally {
+                setStartingAnalysis(false);
+              }
+            }}
+          >
+            {view?.analyzing || startingAnalysis ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Search className="size-4" />
+            )}
+            {t(
+              view?.analyzing || startingAnalysis ? 'mindMap.analyzing' : 'mindMap.analyzeProject'
+            )}
+          </Button>
+          <Button
             variant="outline"
             size="sm"
             disabled={!selected || view?.generating === true || loading}
@@ -269,7 +297,7 @@ export function ProjectMindMapPanel({
           {view?.generating ? (
             <span role="status" className="text-muted-foreground flex items-center gap-1.5 text-xs">
               <Loader2 className="size-3.5 animate-spin" />
-              {t('mindMap.organizing')}
+              {t(view.analyzing ? 'mindMap.analyzing' : 'mindMap.organizing')}
             </span>
           ) : null}
           <Button variant="ghost" size="sm" onClick={() => updateCollapsed(new Set())}>
@@ -344,6 +372,14 @@ export function ProjectMindMapPanel({
             themes: view?.map.topics.length ?? 0,
           })}
         </span>
+        {view?.analysis ? (
+          <span>
+            {t('mindMap.analysisSummary', {
+              files: view.analysis.filesRead,
+              added: view.analysis.featuresAdded,
+            })}
+          </span>
+        ) : null}
         <span>{t('mindMap.evolving')}</span>
       </footer>
     </main>

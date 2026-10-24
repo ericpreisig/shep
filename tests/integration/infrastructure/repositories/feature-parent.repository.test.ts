@@ -97,6 +97,17 @@ describe('Feature parent_id migration and findByParentId', () => {
   });
 
   describe('parentId mapper round-trip', () => {
+    it('persists source-analysis provenance without creating an execution', async () => {
+      await repository.create(
+        createTestFeature({
+          discovery: { key: 'combat', evidencePaths: ['src/combat.ts'], analyzedAt: new Date() },
+        })
+      );
+      const found = await repository.findById('feat-1');
+      expect(found?.discovery?.key).toBe('combat');
+      expect(found?.discovery?.evidencePaths).toEqual(['src/combat.ts']);
+      expect(found?.agentRunId).toBeUndefined();
+    });
     it('checks all parents atomically when claiming a worker slot', async () => {
       const a = createTestFeature({ id: 'a', slug: 'a', lifecycle: SdlcLifecycle.Maintain });
       const b = createTestFeature({ id: 'b', slug: 'b', lifecycle: SdlcLifecycle.Implementation });

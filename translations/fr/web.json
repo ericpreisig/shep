@@ -2072,6 +2072,9 @@
     "taskCount_other": "{{count}} tâches",
     "chat": "Chat",
     "expandTopic": "Déplier {{topic}}",
-    "collapseTopic": "Replier {{topic}}"
+    "collapseTopic": "Replier {{topic}}",
+    "analyzeProject": "Analyser le projet",
+    "analyzing": "Analyse du code et des fonctionnalités…",
+    "analysisSummary": "{{files}} fichiers analysés · {{added}} fonctionnalités ajoutées"
   }
 }
