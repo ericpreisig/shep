@@ -99,6 +99,44 @@ describe('AgentModelPicker', () => {
     mockUpdateAgentAndModel.mockResolvedValue({ ok: true });
   });
 
+  it('selects a native Codex profile and shows its catalog label after selection', async () => {
+    mockGetAllAgentModels.mockResolvedValue(
+      groups.map((group) =>
+        group.agentType === 'codex-cli'
+          ? {
+              ...group,
+              models: [
+                ...group.models,
+                {
+                  id: 'codex-profile:deepseek',
+                  displayName: 'deepseek (Codex profile)',
+                  description: 'Use the configured DeepSeek OpenRouter profile',
+                },
+              ],
+            }
+          : group
+      )
+    );
+    const onChange = vi.fn();
+    render(
+      <AgentModelPicker
+        initialAgentType="codex-cli"
+        initialModel="gpt-5.4"
+        mode="override"
+        onAgentModelChange={onChange}
+      />
+    );
+
+    await userEvent.click(await screen.findByRole('button', { name: /Codex CLI/i }));
+    await userEvent.click(
+      await screen.findByRole('button', { name: /deepseek \(Codex profile\)/i })
+    );
+
+    expect(onChange).toHaveBeenLastCalledWith('codex-cli', 'codex-profile:deepseek');
+    expect(screen.getByRole('combobox')).toHaveTextContent('deepseek (Codex profile)');
+    expect(screen.getByRole('combobox')).not.toHaveTextContent('codex-profile:');
+  });
+
   it('reports model loading failure and can recover without remounting', async () => {
     mockGetAllAgentModels.mockRejectedValueOnce(new Error('Connection lost'));
     render(<AgentModelPicker initialAgentType="claude-code" initialModel="" mode="settings" />);

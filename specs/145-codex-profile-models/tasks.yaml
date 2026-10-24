@@ -1,0 +1,70 @@
+name: codex-profile-models
+relatedFeatures:
+- 077-codex-cli-agent
+- 144-multiple-agent-providers
+technologies:
+- TypeScript
+- Node.js
+- Codex CLI
+relatedLinks: []
+openQuestions: []
+summary: Extend only the Codex adapter and its existing catalog; reuse all model pickers.
+totalEstimate: 2h
+tasks:
+- id: task-1
+  title: Discover native profiles alongside cached models
+  description: Discover native profiles alongside cached models
+  state: Done
+  dependencies: []
+  acceptanceCriteria:
+  - Expose profile filenames without reading tokens.
+  - Preserve native catalog fallback and refresh profile changes without a stale cache.
+  tdd:
+    red:
+    - Add failing behavioral regression tests.
+    green:
+    - Extend the existing Codex infrastructure seams.
+    refactor:
+    - Keep one shared route and reuse the existing picker.
+  estimatedEffort: 35m
+- id: task-2
+  title: Select the native profile in every execution path
+  description: Select the native profile in every execution path
+  state: Done
+  dependencies:
+  - task-1
+  acceptanceCriteria:
+  - Use --profile and omit --model for profile selections.
+  - Preserve normal GPT flags and resume behavior.
+  tdd:
+    red:
+    - Add failing behavioral regression tests.
+    green:
+    - Extend the existing Codex infrastructure seams.
+    refactor:
+    - Keep one shared route and reuse the existing picker.
+  estimatedEffort: 35m
+- id: task-3
+  title: Verify the real fork and OpenRouter execution
+  description: Verify the real fork and OpenRouter execution
+  state: Done
+  dependencies:
+  - task-2
+  acceptanceCriteria:
+  - Pass affected tests, typecheck, lint and CLI build.
+  - Observe deepseek in the fork UI and validate a real file read and edit through
+    the Shep Codex executor.
+  tdd:
+    red:
+    - Add failing behavioral regression tests.
+    green:
+    - Extend the existing Codex infrastructure seams.
+    refactor:
+    - Keep one shared route and reuse the existing picker.
+  estimatedEffort: 50m
+content: '## Acceptance Checklist
+
+  The existing deepseek profile is selectable under Codex CLI and uses OpenRouter
+  end to end, without changing default models or credential storage.
+
+  '

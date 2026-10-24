@@ -160,6 +160,43 @@ describe('CodexCliExecutorService', () => {
   // --- Task 3: execute() with basic prompt execution and JSONL parsing ---
 
   describe('execute', () => {
+    it('selects the native profile instead of passing its identifier as a model', async () => {
+      const proc = createMockChildProcess();
+      vi.mocked(mockSpawn).mockReturnValue(proc as any);
+      const result = executor.execute('Use DeepSeek via OpenRouter', {
+        silent: true,
+        model: 'codex-profile:deepseek',
+      });
+      emitJsonlLines(proc, [agentMessageCompleted('Done'), turnCompleted()], null, 0);
+      await result;
+
+      const args = vi.mocked(mockSpawn).mock.calls[0][1] as string[];
+      expect(args.slice(args.indexOf('--profile'), args.indexOf('--profile') + 2)).toEqual([
+        '--profile',
+        'deepseek',
+      ]);
+      expect(args).not.toContain('--model');
+      expect(args).not.toContain('codex-profile:deepseek');
+    });
+
+    it('keeps the selected profile before the resume subcommand', async () => {
+      const proc = createMockChildProcess();
+      vi.mocked(mockSpawn).mockReturnValue(proc as any);
+      const result = executor.execute('Continue', {
+        silent: true,
+        model: 'codex-profile:deepseek',
+        resumeSession: 'profile-thread',
+      });
+      emitJsonlLines(proc, [agentMessageCompleted('Done'), turnCompleted()], null, 0);
+      await result;
+
+      const args = vi.mocked(mockSpawn).mock.calls[0][1] as string[];
+      expect(args.indexOf('--profile')).toBeGreaterThan(0);
+      expect(args.indexOf('--profile')).toBeLessThan(args.indexOf('resume'));
+      expect(args.slice(-3)).toEqual(['resume', 'profile-thread', '-']);
+      expect(args).not.toContain('--model');
+    });
+
     it('should spawn codex with correct base args', async () => {
       const mockProc = createMockChildProcess();
       vi.mocked(mockSpawn).mockReturnValue(mockProc as any);
@@ -774,6 +811,28 @@ describe('CodexCliExecutorService', () => {
   // --- Task 8: executeStream ---
 
   describe('executeStream', () => {
+    it('selects the same native profile for streamed and interactive turns', async () => {
+      const proc = createMockChildProcess();
+      vi.mocked(mockSpawn).mockReturnValue(proc as any);
+      let completed = false;
+      const consume = (async () => {
+        for await (const event of executor.executeStream('Use the profile', {
+          silent: true,
+          model: 'codex-profile:deepseek',
+        })) {
+          if (event.type === 'result') completed = true;
+        }
+      })();
+      emitJsonlLines(proc, [agentMessageCompleted('Done'), turnCompleted()], null, 0);
+      await consume;
+
+      const args = vi.mocked(mockSpawn).mock.calls[0][1] as string[];
+      expect(args).toContain('--profile');
+      expect(args).toContain('deepseek');
+      expect(args).not.toContain('--model');
+      expect(completed).toBe(true);
+    });
+
     const tick = () => new Promise((r) => setTimeout(r, 10));
 
     /** Collect all stream events, writing stdout lines and closing the process */

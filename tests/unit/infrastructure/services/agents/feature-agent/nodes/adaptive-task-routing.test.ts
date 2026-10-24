@@ -30,6 +30,20 @@ function task(id: string, complexity?: TaskComplexity): RoutableTask {
 const CLAUDE_CODE = 'claude-code';
 
 describe('buildAdaptiveRouting', () => {
+  it('keeps a native Codex profile intact instead of dropping its provider for a tier override', () => {
+    const routing = buildAdaptiveRouting({
+      agentType: 'codex-cli',
+      baseModel: 'codex-profile:deepseek',
+      adaptive: { enabled: true, low: 'gpt-5.6-luna' },
+    });
+
+    expect(routing.enabled).toBe(false);
+    expect(routing.resolve(task('small', TaskComplexity.Low)).model).toBeUndefined();
+    expect(resolvePhaseModelId([task('small')], routing, 'codex-profile:deepseek')).toBe(
+      'codex-profile:deepseek'
+    );
+  });
+
   it('is disabled when the settings toggle is off', () => {
     const routing = buildAdaptiveRouting({
       agentType: CLAUDE_CODE,

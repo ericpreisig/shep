@@ -24,6 +24,7 @@ import {
   type ClassifiableTask,
 } from '@/domain/shared/model-tier.js';
 import { getModelsForAgent } from '../../common/agent-model-catalog.js';
+import { getCodexProfileName } from '../../common/codex-profiles.js';
 
 /** A task the router can classify — a structural subset of `PhaseTask`. */
 export type RoutableTask = ClassifiableTask & { id: string; title: string };
@@ -77,7 +78,11 @@ const TIER_RANK: Readonly<Record<TaskComplexity, number>> = {
  */
 export function buildAdaptiveRouting(input: BuildAdaptiveRoutingInput): AdaptiveRouting {
   const { agentType, baseModel, adaptive } = input;
-  const enabled = isAdaptiveModelSelectionEnabled({ adaptive }) && Boolean(baseModel?.trim());
+  // A native profile is an atomic model/provider choice, not a tierable model id.
+  const enabled =
+    isAdaptiveModelSelectionEnabled({ adaptive }) &&
+    Boolean(baseModel?.trim()) &&
+    !getCodexProfileName(baseModel);
 
   if (!enabled || !baseModel) {
     return {

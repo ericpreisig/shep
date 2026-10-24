@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "modelChoice": "codex-profile:deepseek",
+  "actualModel": "deepseek/deepseek-v4.1-flash",
+  "provider": "OpenRouter",
+  "profileVisibleInFactory": true,
+  "fileEditVerified": true,
+  "structuredOutputVerified": true,
+  "sessionId": "01a16c38-a252-79e2-b0ea-f036c503ac7e",
+  "elapsedMs": 10946,
+  "codexSessionMetadata": {
+    "provider": "openrouter",
+    "model": "deepseek/deepseek-v4.1-flash"
+  }
+}

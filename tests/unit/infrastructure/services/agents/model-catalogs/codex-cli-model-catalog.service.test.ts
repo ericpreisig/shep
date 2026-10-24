@@ -12,6 +12,7 @@ import {
   MODEL_CATALOG_FETCH_TIMEOUT_MS,
   MODEL_CATALOG_TTL_MS,
 } from '@/infrastructure/services/agents/common/model-catalogs/catalog-fetch.js';
+import { CODEX_CLI_MODELS } from '@/infrastructure/services/agents/common/agent-model-catalog.js';
 
 const FIXTURE = JSON.stringify({
   models: [
@@ -58,7 +59,7 @@ describe('CodexCliModelCatalogService', () => {
 
   it('caches within the shared TTL', async () => {
     const run = vi.fn().mockResolvedValue(FIXTURE);
-    const catalog = new CodexCliModelCatalogService(run);
+    const catalog = new CodexCliModelCatalogService(run, () => []);
 
     await catalog.listModels();
     await catalog.listModels();
@@ -71,7 +72,7 @@ describe('CodexCliModelCatalogService', () => {
 
   it('returns last-good when a later fetch fails', async () => {
     const run = vi.fn().mockResolvedValueOnce(FIXTURE).mockRejectedValueOnce(new Error('timeout'));
-    const catalog = new CodexCliModelCatalogService(run);
+    const catalog = new CodexCliModelCatalogService(run, () => []);
 
     const first = await catalog.listModels();
     await vi.advanceTimersByTimeAsync(MODEL_CATALOG_TTL_MS + 1);
@@ -83,9 +84,50 @@ describe('CodexCliModelCatalogService', () => {
 
   it('returns an empty list when the runner fails and there is no cache', async () => {
     const run = vi.fn().mockRejectedValue(new Error('codex not found'));
-    const catalog = new CodexCliModelCatalogService(run);
+    const catalog = new CodexCliModelCatalogService(run, () => []);
 
     await expect(catalog.listModels()).resolves.toEqual([]);
+  });
+
+  it('offers native profiles alongside the default model catalog', async () => {
+    const profile = { id: 'codex-profile:deepseek', displayName: 'deepseek (Codex profile)' };
+    const catalog = new CodexCliModelCatalogService(vi.fn().mockResolvedValue(FIXTURE), () => [
+      profile,
+    ]);
+
+    expect((await catalog.listModels()).map((entry) => entry.id)).toEqual([
+      'gpt-5.4',
+      'codex-profile:deepseek',
+    ]);
+  });
+
+  it('still offers profiles when default-account discovery fails', async () => {
+    const profile = { id: 'codex-profile:deepseek' };
+    const catalog = new CodexCliModelCatalogService(
+      vi.fn().mockRejectedValue(new Error('default login unavailable')),
+      () => [profile]
+    );
+
+    await expect(catalog.listModels()).resolves.toEqual([
+      ...CODEX_CLI_MODELS.map((id) => ({ id })),
+      profile,
+    ]);
+  });
+
+  it('refreshes profile additions and removals while the native catalog stays cached', async () => {
+    const run = vi.fn().mockResolvedValue(FIXTURE);
+    let profiles = [{ id: 'codex-profile:deepseek' }];
+    const catalog = new CodexCliModelCatalogService(run, () => profiles);
+
+    expect((await catalog.listModels()).map((entry) => entry.id)).toContain(
+      'codex-profile:deepseek'
+    );
+    profiles = [{ id: 'codex-profile:review' }];
+    expect((await catalog.listModels()).map((entry) => entry.id)).toEqual([
+      'gpt-5.4',
+      'codex-profile:review',
+    ]);
+    expect(run).toHaveBeenCalledTimes(1);
   });
 });
 

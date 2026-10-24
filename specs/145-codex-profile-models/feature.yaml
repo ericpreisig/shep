@@ -1,0 +1,28 @@
+feature:
+  id: 145-codex-profile-models
+  name: codex-profile-models
+  number: 145
+  branch: feat/145-codex-profile-models
+  lifecycle: implementation
+status:
+  phase: ready-for-review
+  currentTask: null
+  progress:
+    total: 3
+    completed: 3
+    percentage: 100
+  lastUpdated: '2026-10-24T04:51:44.304320+00:00'
+  lastUpdatedBy: shep-kit:implement
+checkpoints:
+- phase: feature-created
+  completedAt: '2026-10-24T04:36:34.186129+00:00'
+  completedBy: shep-kit:new-feature
+- phase: research-complete
+  completedAt: '2026-10-24T04:36:34.186129+00:00'
+  completedBy: shep-kit:research
+- phase: planning-complete
+  completedAt: '2026-10-24T04:36:34.186129+00:00'
+  completedBy: shep-kit:plan
+- phase: implementation-complete
+  completedAt: '2026-10-24T04:51:44.304320+00:00'
+  completedBy: shep-kit:implement

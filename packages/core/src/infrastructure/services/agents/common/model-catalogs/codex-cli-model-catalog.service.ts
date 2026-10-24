@@ -12,6 +12,8 @@ import { MODEL_CATALOG_FETCH_TIMEOUT_MS } from './catalog-fetch.js';
 import { TtlModelCatalog } from './ttl-model-catalog.js';
 import type { ExecFunction } from '../../../git/worktree.service.js';
 import { createExecFunction } from '../../../process/exec-function.js';
+import { listCodexProfileModels } from '../codex-profiles.js';
+import { CODEX_CLI_MODELS } from '../agent-model-catalog.js';
 
 const CODEX_BINARY = 'codex';
 
@@ -79,9 +81,21 @@ export function createCodexListModels(exec: ExecFunction): CodexListModelsFn {
 
 export class CodexCliModelCatalogService extends TtlModelCatalog {
   constructor(
-    private readonly listModelsFn: CodexListModelsFn = createCodexListModels(createExecFunction())
+    private readonly listModelsFn: CodexListModelsFn = createCodexListModels(createExecFunction()),
+    private readonly listProfilesFn: () => AgentModelListing[] = listCodexProfileModels
   ) {
     super();
+  }
+
+  override async listModels(authConfig?: AgentConfig): Promise<AgentModelListing[]> {
+    // Profiles stay fresh even when the default catalog is cached or unavailable.
+    const models = await super.listModels(authConfig);
+    const profiles = this.listProfilesFn();
+    // A nonempty profile list must not mask the factory's native-model fallback.
+    if (models.length === 0 && profiles.length > 0) {
+      models.push(...CODEX_CLI_MODELS.map((id) => ({ id })));
+    }
+    return [...models, ...profiles];
   }
 
   protected async fetchModels(_authConfig?: AgentConfig): Promise<AgentModelListing[]> {

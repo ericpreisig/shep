@@ -1,0 +1,76 @@
+name: codex-profile-models
+relatedFeatures:
+- 077-codex-cli-agent
+- 144-multiple-agent-providers
+technologies:
+- TypeScript
+- Node.js
+- Codex CLI
+relatedLinks: []
+openQuestions: []
+summary: Extend only the Codex adapter and its existing catalog; reuse all model pickers.
+phases:
+- id: phase-1
+  name: Discover native profile choices (RED-GREEN-REFACTOR)
+  parallel: false
+  taskIds:
+  - task-1
+- id: phase-2
+  name: Route initial, streamed and resumed execution (RED-GREEN-REFACTOR)
+  parallel: false
+  taskIds:
+  - task-2
+- id: phase-3
+  name: Verify live picker and real OpenRouter execution
+  parallel: false
+  taskIds:
+  - task-3
+filesToCreate:
+- packages/core/src/infrastructure/services/agents/common/codex-profiles.ts
+- tests/unit/infrastructure/services/agents/common/codex-profiles.test.ts
+filesToModify:
+- packages/core/src/infrastructure/services/agents/common/model-catalogs/codex-cli-model-catalog.service.ts
+- packages/core/src/infrastructure/services/agents/common/executors/codex-cli-executor.service.ts
+- tests/unit/infrastructure/services/agents/model-catalogs/codex-cli-model-catalog.service.test.ts
+- tests/unit/infrastructure/services/agents/executors/codex-cli-executor.test.ts
+- packages/core/src/infrastructure/services/agents/feature-agent/nodes/adaptive-task-routing.ts
+- tests/unit/infrastructure/services/agents/feature-agent/nodes/adaptive-task-routing.test.ts
+- src/presentation/web/components/features/settings/AgentModelPicker/index.tsx
+- tests/unit/presentation/web/components/features/settings/AgentModelPicker.test.tsx
+content: '## Clean Architecture
+
+  Keep filename discovery and subprocess routing in infrastructure. Agent resolution,
+  model selection, domain entities and TypeSpec contracts remain unchanged. The existing
+  string model identifier carries an explicit profile selection.
+
+
+  ## TDD
+
+  RED: add discovery, fallback, cache freshness, native model and profile execution
+  regression tests. GREEN: add a filename-only helper, merge profiles after cached
+  catalog discovery, route the profile at the shared argument builder. REFACTOR: retain
+  one routing function for execute and executeStream.
+
+
+  ## Test Coverage
+
+  Cover missing directories, filename validation, normal models, unavailable default
+  catalogs, new and removed profiles, initial and resumed execution and interactive
+  reuse. Run affected tests, typecheck, scoped lint and the CLI build. Verify the
+  actual fork UI and perform one real read/edit run through the executor.
+
+
+  ## Rollback
+
+  Revert the two adapter integrations and helper. Existing stored native model selections
+  remain valid; profile choices must be reselected as native models if the feature
+  is removed.
+
+
+  ## Integration Details
+
+  Preserve the existing domain-catalog fallback if default CLI discovery fails. Keep
+  profile selections atomic during adaptive task routing. Reuse the selected catalog
+  listing for the existing picker trigger label.
+
+  '

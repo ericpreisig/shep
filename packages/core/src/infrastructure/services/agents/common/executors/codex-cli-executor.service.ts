@@ -43,6 +43,7 @@ import {
   watchAbortSignal,
 } from './process-stream.js';
 import { watchPostResultExit } from './post-result-exit.js';
+import { getCodexProfileName } from '../codex-profiles.js';
 import {
   validateSecurityConstraints,
   type ExecutorCapabilities,
@@ -790,7 +791,9 @@ export class CodexCliExecutorService implements IAgentExecutor {
       'never',
     ];
 
-    if (options?.model) baseFlags.push('--model', options.model);
+    const profile = getCodexProfileName(options?.model);
+    if (profile) baseFlags.push('--profile', profile);
+    else if (options?.model) baseFlags.push('--model', options.model);
     if (options?.cwd) baseFlags.push('--cd', options.cwd);
     if (tempSchemaPath) baseFlags.push('--output-schema', tempSchemaPath);
 

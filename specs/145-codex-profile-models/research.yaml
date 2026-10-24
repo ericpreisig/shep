@@ -1,0 +1,49 @@
+name: codex-profile-models
+relatedFeatures:
+- 077-codex-cli-agent
+- 144-multiple-agent-providers
+technologies:
+- TypeScript
+- Node.js
+- Codex CLI
+relatedLinks: []
+openQuestions: []
+summary: Use native Codex profiles as explicit model choices with deterministic profile
+  identifiers.
+decisions:
+- title: Route complete native profiles
+  chosen: Use codex-profile:<name> as the existing model listing id and pass --profile
+    <name>.
+  rejected:
+  - Hardcode DeepSeek or route slash-containing model names to OpenRouter.
+  - Parse TOML and infer a provider from a model id.
+  - Introduce a new agent type or persistent profile field.
+  rationale: Native profile selection keeps provider, model and authentication together,
+    avoids ambiguous matching and adds no dependencies.
+- title: Discovery and cache
+  chosen: Merge regular and symlinked profile filenames into the existing cached model
+    list on each read.
+  rejected:
+  - Replace the default Codex catalog.
+  - Require successful default-account model discovery before showing profiles.
+  rationale: Profile discovery is local and small; it must work even if the default
+    catalog fails or was cached before a profile was created.
+content: '## Evidence
+
+  The installed Codex 0.163.0 supports --profile on exec; the existing deepseek profile
+  completed shell and apply_patch tests through OpenRouter. Shep already reuses one
+  Codex executor for regular and interactive turns.
+
+
+  ## Security
+
+  Read filenames only. Validate native profile names and use structured subprocess
+  arguments. Never read or return credential contents.
+
+
+  ## Performance
+
+  Reuse the current TTL for CLI catalog calls; read the small local profile directory
+  for fresh profile choices.
+
+  '

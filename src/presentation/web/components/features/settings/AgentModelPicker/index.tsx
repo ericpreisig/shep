@@ -215,8 +215,13 @@ export function AgentModelPicker({
   const error = saveError ?? internalError;
 
   const AgentIcon = getAgentTypeIcon(agentType);
-  const agentLabel = groups.find((g) => g.agentType === agentType)?.label ?? agentType;
-  const modelName = model ? getModelMeta(model).displayName || model : null;
+  const selectedGroup = groups.find((g) => g.agentType === agentType);
+  const agentLabel = selectedGroup?.label ?? agentType;
+  const modelName = model
+    ? (selectedGroup?.models.find((entry) => entry.id === model)?.displayName ??
+        getModelMeta(model).displayName) ||
+      model
+    : null;
 
   const activeGroup = drillAgent ? groups.find((g) => g.agentType === drillAgent) : null;
 
