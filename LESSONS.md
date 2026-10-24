@@ -1,5 +1,11 @@
 # Lessons Learned
 
+## Publish this personal fork on main
+
+Eric wants the changes in his personal fork published on `main` unless he
+explicitly requests another branch. His requested destination takes precedence
+over the repository's feature-branch workflow.
+
 ## Explanation requests do not authorize implementation
 
 When the user asks why something fails or how it could work, answer the question.
