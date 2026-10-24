@@ -1,0 +1,69 @@
+name: implementation-efficiency
+relatedFeatures:
+- 020-worktree-merge-flow
+- 145-codex-profile-models
+technologies:
+- TypeScript
+- Node.js
+- Git
+- TypeSpec
+relatedLinks: []
+openQuestions: []
+summary: Reduce repeated setup and validation in autonomous implementation using existing
+  settings, hooks and phase checkpoints.
+totalEstimate: 3h
+tasks:
+- id: task-1
+  title: Prepare worktrees (RED-GREEN-REFACTOR)
+  description: Prepare worktrees (RED-GREEN-REFACTOR)
+  state: Done
+  dependencies: []
+  acceptanceCriteria:
+  - Hydrate only selected untracked files, preserve branch files and run preparation
+    before agents.
+  tdd:
+    red:
+    - Add failing behavior and regression tests.
+    green:
+    - Extend the existing settings, hooks and implementation node.
+    refactor:
+    - Keep one rule per behavior and reuse native mechanisms.
+  estimatedEffort: 1h
+- id: task-2
+  title: Scope checks and persist handoffs (RED-GREEN-REFACTOR)
+  description: Scope checks and persist handoffs (RED-GREEN-REFACTOR)
+  state: Done
+  dependencies:
+  - task-1
+  acceptanceCriteria:
+  - Reuse durable phase results and perform one full final validation.
+  tdd:
+    red:
+    - Add failing behavior and regression tests.
+    green:
+    - Extend the existing settings, hooks and implementation node.
+    refactor:
+    - Keep one rule per behavior and reuse native mechanisms.
+  estimatedEffort: 1h
+- id: task-3
+  title: Validate and deploy the fork (RED-GREEN-REFACTOR)
+  description: Validate and deploy the fork (RED-GREEN-REFACTOR)
+  state: Done
+  dependencies:
+  - task-2
+  acceptanceCriteria:
+  - Pass scoped checks and a real fresh-worktree smoke; deploy safely.
+  tdd:
+    red:
+    - Add failing behavior and regression tests.
+    green:
+    - Extend the existing settings, hooks and implementation node.
+    refactor:
+    - Keep one rule per behavior and reuse native mechanisms.
+  estimatedEffort: 1h
+content: '## Acceptance Checklist
+
+  All three requested optimizations are enabled for newly launched workers without
+  changing current retry behavior.
+
+  '

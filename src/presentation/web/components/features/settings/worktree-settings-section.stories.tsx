@@ -26,6 +26,13 @@ export const MonorepoSymlink: Story = {
   },
 };
 
+/** Local media is hydrated before compiling a fresh .NET worktree. */
+export const PreparedWorktree: Story = {
+  args: {
+    worktree: { copyPaths: ['assets', 'config/local.json'], postCreateCommand: 'dotnet build' },
+  },
+};
+
 /** A wrapper tool fully replacing `git worktree add`. */
 export const CustomCreateTool: Story = {
   args: {

@@ -16,6 +16,16 @@ const EXISTING = {
 };
 
 describe('buildNextConfig', () => {
+  it('sets and clears the copy allowlist while preserving the hook', () => {
+    expect(buildNextConfig(EXISTING, { copyPath: [' assets ', './local'] })).toEqual({
+      ...EXISTING,
+      copyPaths: ['assets', 'local'],
+    });
+    expect(buildNextConfig({ ...EXISTING, copyPaths: ['assets'] }, { copyPath: [''] })).toEqual(
+      EXISTING
+    );
+    expect(() => buildNextConfig(EXISTING, { copyPath: ['../private'] })).toThrow(/copy path/i);
+  });
   it('returns null when no option is supplied (read-only invocation)', () => {
     expect(buildNextConfig(EXISTING, {})).toBeNull();
   });

@@ -30,6 +30,7 @@ import {
   resolveWorktreeCommandTimeoutMs,
 } from '../../../domain/shared/worktree-config.js';
 import type { ExecFunction } from './worktree.service.js';
+import { copyWorktreeFiles } from './worktree-file-copy.js';
 
 /** Cap on captured stdout/stderr so a chatty install script cannot exhaust memory. */
 const COMMAND_MAX_BUFFER_BYTES = 10 * 1024 * 1024;
@@ -78,6 +79,23 @@ export class WorktreeHookRunner implements IWorktreeHookRunner {
   }
 
   async runPostCreateHook(context: WorktreeHookContext): Promise<void> {
+    const config = this.readConfig();
+    if (config?.copyPaths?.length) {
+      try {
+        await copyWorktreeFiles(
+          context,
+          config.copyPaths,
+          this.execFile,
+          resolveWorktreeCommandTimeoutMs(config)
+        );
+      } catch (error) {
+        throw new WorktreeError(
+          `worktree.copyPaths failed: ${error instanceof Error ? error.message : String(error)}`,
+          WorktreeErrorCode.HOOK_FAILED,
+          error instanceof Error ? error : undefined
+        );
+      }
+    }
     const command = this.readCommand('postCreateCommand');
     if (!command) return;
 

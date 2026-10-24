@@ -33,6 +33,22 @@ describe('SQLiteSettingsRepository', () => {
   let db: Database.Database;
   let repository: SQLiteSettingsRepository;
 
+  it('persists and clears copy paths through the real migrated settings table', async () => {
+    const settings = createTestSettings();
+    settings.worktree = { copyPaths: [' assets/ '], postCreateCommand: 'dotnet build' };
+    await repository.initialize(settings);
+    expect((await repository.load())?.worktree).toEqual({
+      copyPaths: ['assets'],
+      postCreateCommand: 'dotnet build',
+    });
+    settings.worktree.copyPaths = ['assets', 'config/local.json'];
+    await repository.update(settings);
+    expect((await repository.load())?.worktree?.copyPaths).toEqual(['assets', 'config/local.json']);
+    settings.worktree.copyPaths = [];
+    await repository.update(settings);
+    expect((await repository.load())?.worktree).toEqual({ postCreateCommand: 'dotnet build' });
+  });
+
   it('persists independent Codex CLI and OpenRouter configurations', async () => {
     const settings = createTestSettings();
     settings.agentProviders = [

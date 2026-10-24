@@ -31,6 +31,7 @@ import { messages } from '../../ui/index.js';
 const NOT_CONFIGURED = '(not set — built-in git worktree)';
 
 export interface WorktreeCommandOptions {
+  copyPath?: string[];
   createCommand?: string;
   postCreateCommand?: string;
   timeout?: string;
@@ -43,6 +44,10 @@ export interface WorktreeCommandOptions {
 export function createWorktreeCommand(): Command {
   return new Command('worktree')
     .description('Configure custom worktree provisioning commands')
+    .option(
+      '--copy-path <paths...>',
+      'Relative paths whose untracked files are copied before setup (empty string clears)'
+    )
     .option('--create-command <cmd>', 'Command that replaces `git worktree add`')
     .option('--post-create-command <cmd>', 'Command run inside each new worktree')
     .option('--timeout <ms>', 'Timeout in milliseconds applied to each command')
@@ -109,12 +114,14 @@ export function buildNextConfig(
   if (options.clear) return undefined;
 
   const hasChange =
+    options.copyPath !== undefined ||
     options.createCommand !== undefined ||
     options.postCreateCommand !== undefined ||
     options.timeout !== undefined;
   if (!hasChange) return null;
 
   const next: WorktreeConfig = { ...current };
+  if (options.copyPath !== undefined) next.copyPaths = options.copyPath;
 
   // An explicit empty string clears the command; normalizeWorktreeConfig drops it.
   if (options.createCommand !== undefined) next.createCommand = options.createCommand;
@@ -134,6 +141,7 @@ export function buildNextConfig(
 }
 
 function printConfig(worktree: WorktreeConfig | undefined): void {
+  messages.info(`copy paths:          ${worktree?.copyPaths?.join(', ') ?? '(none)'}`);
   messages.info(`create command:      ${worktree?.createCommand ?? NOT_CONFIGURED}`);
   messages.info(`post-create command: ${worktree?.postCreateCommand ?? NOT_CONFIGURED}`);
   messages.info(

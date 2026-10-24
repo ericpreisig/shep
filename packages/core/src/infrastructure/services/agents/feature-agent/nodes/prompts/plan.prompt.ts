@@ -78,6 +78,8 @@ ${researchContent}
 - Implementation phases — high-level names and descriptions (NO individual task lists)
 - Files to create and files to modify
 - Risk mitigation strategies
+- Verification per phase: targeted checks for changed behavior; schedule the full required build/test/end-to-end recipe once after the final implementation changes, rather than repeating it in every phase
+- Account for fresh worktree preparation: required untracked local assets and a successful current build before tests using --no-build
 - Do NOT include task breakdowns — those belong exclusively in tasks.yaml
 
 ### Task Breakdown (tasks.yaml)

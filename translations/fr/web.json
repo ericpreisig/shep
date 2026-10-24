@@ -144,7 +144,9 @@
       "hint": "À utiliser quand un simple worktree git ne suffit pas : monorepos nécessitant un node_modules lié, ou projets qui ne compilent que depuis un répertoire préparé.",
       "links": {
         "worktreeGuide": "Provisionnement de worktree personnalisé"
-      }
+      },
+      "copyPaths": "Fichiers locaux à copier",
+      "copyPathsDescription": "Un chemin relatif au dépôt par ligne. Copie les fichiers non suivis avant la préparation, en préservant les fichiers existants et suivis du worktree."
     },
     "adaptiveModels": {
       "title": "Sélection adaptative du modèle",

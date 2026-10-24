@@ -71,6 +71,9 @@ model FeatureStatusProgress {
  */
 @doc("Feature execution status")
 model FeatureStatusInfo {
+  @doc("Bounded implementation summaries keyed by completed phase ID, reused when continuing or resuming implementation")
+  phaseHandoffs?: Record<ImplementationPhaseHandoff>;
+
   @doc("Current SDLC phase")
   phase: string;
 
@@ -88,6 +91,15 @@ model FeatureStatusInfo {
 
   @doc("Agent or skill that last updated the status")
   lastUpdatedBy: string;
+}
+
+@doc("Implementation phase handoff containing changed files, decisions, verification results and remaining work")
+model ImplementationPhaseHandoff {
+  @doc("Compact agent-reported phase outcome, with secrets redacted")
+  summary: string;
+
+  @doc("ISO timestamp at which the phase result was recorded")
+  completedAt: string;
 }
 
 /**

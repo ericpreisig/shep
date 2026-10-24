@@ -2,6 +2,11 @@ $schema: https://json-schema.org/draft/2020-12/schema
 $id: WorktreeConfig.yaml
 type: object
 properties:
+  copyPaths:
+    type: array
+    items:
+      type: string
+    description: Explicit repository-relative paths whose untracked local files are copied before postCreateCommand; existing and tracked worktree files are preserved
   createCommand:
     type: string
     description: Command replacing `git worktree add` (empty = built-in git worktree)

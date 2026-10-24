@@ -144,7 +144,9 @@
       "hint": "Use these when a plain git worktree is not enough — monorepos that need symlinked node_modules, or projects that only build from a prepared directory.",
       "links": {
         "worktreeGuide": "Custom worktree provisioning"
-      }
+      },
+      "copyPaths": "Local files to copy",
+      "copyPathsDescription": "One repository-relative path per line. Copies untracked files before setup, preserving existing and tracked worktree files."
     },
     "adaptiveModels": {
       "title": "Adaptive model selection",

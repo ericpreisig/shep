@@ -199,6 +199,13 @@ describe('implement node — adaptive model selection', () => {
       'claude-haiku-4-5',
       'claude-opus-5',
     ]);
+    const prompts = vi.mocked(executor.execute).mock.calls.map(([prompt]) => prompt);
+    expect(prompts.map((p) => p.includes('Run full project validation'))).toEqual([
+      false,
+      false,
+      true,
+    ]);
+    expect(prompts[1]).toContain('Earlier work in this phase');
   });
 
   it('gives each task in a parallel phase its own resolved model', async () => {
@@ -214,8 +221,17 @@ describe('implement node — adaptive model selection', () => {
     const { executor, calls } = makeExecutor();
     await createImplementNode(executor)(makeState('claude-opus-5'));
 
-    expect(calls).toHaveLength(2);
-    expect(calls.map((c) => c.model).sort()).toEqual(['claude-haiku-4-5', 'claude-opus-5']);
+    expect(calls).toHaveLength(3);
+    expect(
+      calls
+        .slice(0, 2)
+        .map((c) => c.model)
+        .sort()
+    ).toEqual(['claude-haiku-4-5', 'claude-opus-5']);
+    expect(calls[2].model).toBe('claude-opus-5');
+    const prompts = vi.mocked(executor.execute).mock.calls.map(([prompt]) => prompt);
+    expect(prompts.slice(0, 2).every((p) => !p.includes('Run full project validation'))).toBe(true);
+    expect(prompts[2]).toContain('Run full project validation');
   });
 
   // Promise.all rejected on the first failure while the sibling's agent CLI

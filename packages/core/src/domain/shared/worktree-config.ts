@@ -33,11 +33,13 @@ export function normalizeWorktreeConfig(
   const createCommand = normalizeCommand(config.createCommand);
   const postCreateCommand = normalizeCommand(config.postCreateCommand);
   const commandTimeoutMs = normalizeTimeoutMs(config.commandTimeoutMs);
+  const copyPaths = normalizeCopyPaths(config.copyPaths);
 
   if (
     createCommand === undefined &&
     postCreateCommand === undefined &&
-    commandTimeoutMs === undefined
+    commandTimeoutMs === undefined &&
+    copyPaths === undefined
   ) {
     return undefined;
   }
@@ -46,7 +48,32 @@ export function normalizeWorktreeConfig(
     ...(createCommand !== undefined && { createCommand }),
     ...(postCreateCommand !== undefined && { postCreateCommand }),
     ...(commandTimeoutMs !== undefined && { commandTimeoutMs }),
+    ...(copyPaths !== undefined && { copyPaths }),
   };
+}
+
+function normalizeCopyPaths(paths: string[] | undefined): string[] | undefined {
+  if (paths === undefined) return undefined;
+  if (!Array.isArray(paths) || paths.some((path) => typeof path !== 'string')) {
+    throw new Error('Worktree copy paths must be a list of relative paths');
+  }
+  const normalized = paths
+    .filter((path) => path.trim())
+    .map((path) => {
+      const value = path.trim().replace(/\\/g, '/');
+      const segments = value.split('/');
+      if (
+        value.startsWith('/') ||
+        /[:\0]/.test(value) ||
+        segments.some((part) => part === '..' || part.toLowerCase() === '.git')
+      ) {
+        throw new Error(`Invalid worktree copy path: ${path}`);
+      }
+      const relative = segments.filter((part) => part && part !== '.').join('/');
+      if (!relative) throw new Error(`Invalid worktree copy path: ${path}`);
+      return relative;
+    });
+  return normalized.length ? [...new Set(normalized)] : undefined;
 }
 
 /** The timeout to apply to each worktree command for the given config. */

@@ -251,6 +251,7 @@ export interface SettingsRow extends SettingsTelemetryRow {
   worktree_create_command: string | null;
   worktree_post_create_command: string | null;
   worktree_command_timeout_ms: number | null;
+  worktree_copy_paths?: string | null;
 
   // Messaging remote control config (added in migration 056)
   messaging_enabled: number;
@@ -550,13 +551,17 @@ function worktreeToRow(
   worktree: WorktreeConfig | undefined
 ): Pick<
   SettingsRow,
-  'worktree_create_command' | 'worktree_post_create_command' | 'worktree_command_timeout_ms'
+  | 'worktree_create_command'
+  | 'worktree_post_create_command'
+  | 'worktree_command_timeout_ms'
+  | 'worktree_copy_paths'
 > {
   const normalized = normalizeWorktreeConfig(worktree);
   return {
     worktree_create_command: normalized?.createCommand ?? null,
     worktree_post_create_command: normalized?.postCreateCommand ?? null,
     worktree_command_timeout_ms: normalized?.commandTimeoutMs ?? null,
+    worktree_copy_paths: normalized?.copyPaths ? JSON.stringify(normalized.copyPaths) : null,
   };
 }
 
@@ -586,6 +591,7 @@ function harnessFromRow(row: SettingsRow): HarnessConfig | undefined {
  */
 function worktreeFromRow(row: SettingsRow): WorktreeConfig | undefined {
   return normalizeWorktreeConfig({
+    ...(row.worktree_copy_paths && { copyPaths: JSON.parse(row.worktree_copy_paths) as string[] }),
     ...(row.worktree_create_command !== null &&
       row.worktree_create_command !== undefined && {
         createCommand: row.worktree_create_command,

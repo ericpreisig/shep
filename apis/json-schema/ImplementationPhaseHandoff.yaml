@@ -1,0 +1,14 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: ImplementationPhaseHandoff.yaml
+type: object
+properties:
+  summary:
+    type: string
+    description: Compact agent-reported phase outcome, with secrets redacted
+  completedAt:
+    type: string
+    description: ISO timestamp at which the phase result was recorded
+required:
+  - summary
+  - completedAt
+description: Implementation phase handoff containing changed files, decisions, verification results and remaining work

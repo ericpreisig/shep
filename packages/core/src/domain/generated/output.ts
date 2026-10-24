@@ -1103,6 +1103,10 @@ export type SecurityConfig = {
  */
 export type WorktreeConfig = {
   /**
+   * Explicit repository-relative paths whose untracked local files are copied before postCreateCommand; existing and tracked worktree files are preserved
+   */
+  copyPaths?: string[];
+  /**
    * Command replacing `git worktree add` (empty = built-in git worktree)
    */
   createCommand?: string;
@@ -2446,6 +2450,20 @@ export type FeatureIdentity = {
 };
 
 /**
+ * Implementation phase handoff containing changed files, decisions, verification results and remaining work
+ */
+export type ImplementationPhaseHandoff = {
+  /**
+   * Compact agent-reported phase outcome, with secrets redacted
+   */
+  summary: string;
+  /**
+   * ISO timestamp at which the phase result was recorded
+   */
+  completedAt: string;
+};
+
+/**
  * Task completion progress counters
  */
 export type FeatureStatusProgress = {
@@ -2467,6 +2485,10 @@ export type FeatureStatusProgress = {
  * Feature execution status
  */
 export type FeatureStatusInfo = {
+  /**
+   * Bounded implementation summaries keyed by completed phase ID, reused when continuing or resuming implementation
+   */
+  phaseHandoffs?: Record<string, ImplementationPhaseHandoff>;
   /**
    * Current SDLC phase
    */

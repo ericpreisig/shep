@@ -25,6 +25,7 @@ export interface WorktreeSettingsSectionProps {
  */
 export function WorktreeSettingsSection({ worktree }: WorktreeSettingsSectionProps) {
   const { t } = useTranslation('web');
+  const [copyPaths, setCopyPaths] = useState(worktree?.copyPaths?.join('\n') ?? '');
   const [createCommand, setCreateCommand] = useState(worktree?.createCommand ?? '');
   const [postCreateCommand, setPostCreateCommand] = useState(worktree?.postCreateCommand ?? '');
   const [timeoutMs, setTimeoutMs] = useState(
@@ -55,6 +56,15 @@ export function WorktreeSettingsSection({ worktree }: WorktreeSettingsSectionPro
   function saveCreateCommand() {
     if ((worktree?.createCommand ?? '') === createCommand) return;
     save({ createCommand });
+  }
+
+  function saveCopyPaths() {
+    const paths = copyPaths
+      .split('\n')
+      .map((path) => path.trim())
+      .filter(Boolean);
+    if (paths.join('\n') === (worktree?.copyPaths ?? []).join('\n')) return;
+    save({ copyPaths: paths });
   }
 
   function savePostCreateCommand() {
@@ -93,6 +103,25 @@ export function WorktreeSettingsSection({ worktree }: WorktreeSettingsSectionPro
       </div>
 
       <div className="space-y-3 px-4 py-3">
+        <div className="space-y-1">
+          <label htmlFor="worktree-copy-paths" className="text-sm font-normal">
+            {t('settings.worktree.copyPaths')}
+          </label>
+          <p className="text-muted-foreground text-[11px] leading-tight">
+            {t('settings.worktree.copyPathsDescription')}
+          </p>
+          <Textarea
+            id="worktree-copy-paths"
+            data-testid="worktree-copy-paths"
+            rows={2}
+            spellCheck={false}
+            className="font-mono text-xs"
+            placeholder="assets"
+            value={copyPaths}
+            onChange={(e) => setCopyPaths(e.target.value)}
+            onBlur={saveCopyPaths}
+          />
+        </div>
         <div className="space-y-1">
           <label htmlFor="worktree-create-command" className="text-sm font-normal">
             {t('settings.worktree.createCommand')}

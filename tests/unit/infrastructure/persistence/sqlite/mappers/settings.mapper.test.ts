@@ -18,6 +18,22 @@ import {
 import type { Settings } from '@/domain/generated/output.js';
 import { AgentEffort } from '@/domain/generated/output.js';
 import { createDefaultSettings } from '@/domain/factories/settings-defaults.factory.js';
+
+describe('worktree copy paths persistence', () => {
+  it('round-trips the normalized allowlist and keeps legacy defaults', () => {
+    const row = toDatabase(
+      createTestSettings({
+        worktree: { copyPaths: [' assets/ ', 'local'], postCreateCommand: 'dotnet build' },
+      })
+    );
+    expect(row.worktree_copy_paths).toBe('["assets","local"]');
+    expect(fromDatabase(row).worktree).toEqual({
+      copyPaths: ['assets', 'local'],
+      postCreateCommand: 'dotnet build',
+    });
+    expect(fromDatabase(createTestRow()).worktree).toBeUndefined();
+  });
+});
 import {
   AgentType,
   AgentAuthMethod,

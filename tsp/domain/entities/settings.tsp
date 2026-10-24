@@ -1163,6 +1163,9 @@ model SecurityConfig {
  */
 @doc("Custom worktree provisioning commands")
 model WorktreeConfig {
+  @doc("Explicit repository-relative paths whose untracked local files are copied before postCreateCommand; existing and tracked worktree files are preserved")
+  copyPaths?: string[];
+
   /**
    * Shell command that provisions the worktree INSTEAD of `git worktree add`.
    * Must leave a usable checkout at SHEP_WORKTREE_PATH. Runs with the main

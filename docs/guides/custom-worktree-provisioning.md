@@ -15,7 +15,7 @@ That is fine for most repositories and wrong for some:
 - **Teams with an existing worktree tool** — a script that already knows how to
   lay down a tree correctly for that repository.
 
-Two settings cover these cases. Both live under **Settings → Worktree** in the
+The preparation settings live under **Settings → Worktree** in the
 web UI and are persisted in `settings.worktree`.
 
 ![Settings → Worktree provisioning](../screenshots/settings-worktree-light.png)
@@ -36,6 +36,20 @@ variable expansion all work.
 
 Leaving both empty keeps the built-in `git worktree add` behaviour — this
 feature is entirely opt-in.
+
+## Copy local files before preparation
+
+Set `copyPaths` to an explicit list of repository-relative paths, for example
+`["assets", "config/local.json"]`. The Settings page accepts one path per line.
+Shep copies ignored and other untracked files from those paths before running
+`postCreateCommand`. It preserves tracked destination files (even when missing
+locally) and existing files. Symlink paths and traversal outside the repository
+are rejected. Missing paths are skipped. Nothing is copied by default.
+
+For a .NET project with local media, select `assets` and set the existing
+post-create command to `dotnet build`. New worktrees then have their media and
+a successful build before the agent starts. Preparation failures stop feature
+creation. Build again after changing source before using `--no-build`.
 
 ## Environment variables
 
@@ -103,6 +117,7 @@ Everything the Settings page does is available headless:
 
 ```sh
 shep settings worktree                                  # show current config
+shep settings worktree --copy-path assets config/local.json # hydrate selected untracked files
 shep settings worktree --post-create-command '<cmd>'    # run <cmd> in each new worktree
 shep settings worktree --create-command '<cmd>'         # replace `git worktree add`
 shep settings worktree --timeout 900000                 # per-command timeout
@@ -110,6 +125,21 @@ shep settings worktree --clear                          # back to the built-in f
 ```
 
 Passing an empty string to either command flag clears just that command.
+`--copy-path ''` clears the copy allowlist; `--clear` clears the entire preparation config.
+
+## Implementation phase verification
+
+Intermediate phases and batches are prompted to compile and test the affected
+behavior. Repository instructions still apply. The last sequential batch runs
+the full required validation; parallel final tasks use targeted checks followed
+by one integrated validation call after all tasks have finished.
+
+Successful sessions produce a compact handoff with changed files, decisions,
+exact verification commands/outcomes and remaining issues. Shep stores bounded,
+redacted reports in `feature.yaml` under `status.phaseHandoffs` and provides the
+last three completed phase reports to the next session, including after resume.
+Invalidated phases are excluded. Reports are agent-reported context, not an
+independent guarantee that checks passed.
 
 ## Timeout and failure behaviour
 

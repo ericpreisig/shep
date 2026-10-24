@@ -14,6 +14,23 @@ vi.mock('sonner', () => ({
 }));
 
 describe('WorktreeSettingsSection', () => {
+  it('edits the local file allowlist in the existing section', async () => {
+    render(<WorktreeSettingsSection worktree={{ copyPaths: ['assets', 'local'] }} />);
+    const input = screen.getByTestId('worktree-copy-paths');
+    expect(input).toHaveValue('assets\nlocal');
+    fireEvent.change(input, { target: { value: 'assets\nconfig/local.json\n' } });
+    fireEvent.blur(input);
+    await waitFor(() =>
+      expect(mockUpdateSettingsAction).toHaveBeenCalledWith({
+        worktree: { copyPaths: ['assets', 'config/local.json'] },
+      })
+    );
+    fireEvent.change(input, { target: { value: '' } });
+    fireEvent.blur(input);
+    await waitFor(() =>
+      expect(mockUpdateSettingsAction).toHaveBeenCalledWith({ worktree: { copyPaths: [] } })
+    );
+  });
   beforeEach(() => {
     vi.clearAllMocks();
     mockUpdateSettingsAction.mockResolvedValue({ success: true });

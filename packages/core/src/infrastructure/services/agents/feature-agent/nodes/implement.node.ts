@@ -46,6 +46,7 @@ import {
 import {
   buildImplementPhasePrompt,
   buildImplementRejectionFixPrompt,
+  buildImplementFinalValidationPrompt,
   type PlanPhase,
   type PlanYaml,
   type PhaseTask,
@@ -60,6 +61,7 @@ import {
 } from './adaptive-task-routing.js';
 import { TaskState } from '@/domain/generated/output.js';
 import { hasSettings, getSettings } from '@/infrastructure/services/settings.service.js';
+import { compactPhaseHandoff, writePhaseHandoff } from './implementation-handoff.js';
 
 /**
  * Update feature.yaml with current implementation progress.
@@ -180,6 +182,16 @@ export function createImplementNode(executor: IAgentExecutor, selectMemory?: Mem
       }
 
       const taskMap = new Map(tasksData.tasks.map((t) => [t.id, t]));
+      const tasksForPhase = (phase: PlanPhase): PhaseTask[] =>
+        phase.taskIds?.length
+          ? phase.taskIds
+              .map((id) => taskMap.get(id))
+              .filter((task): task is PhaseTask => task !== undefined)
+          : tasksData.tasks.filter((task) => task.phaseId === phase.id);
+      const lastExecutablePhase = planData.phases.reduce(
+        (last, phase, index) => (tasksForPhase(phase).length ? index : last),
+        -1
+      );
       const totalTasks = tasksData.tasks.length;
       let completedTasks = 0;
       const totalPhases = planData.phases.length;
@@ -262,13 +274,9 @@ export function createImplementNode(executor: IAgentExecutor, selectMemory?: Mem
       // --- Execute phases in order ---
       for (let i = 0; i < totalPhases; i++) {
         const phase = planData.phases[i];
-        const isLastPhase = i === totalPhases - 1;
+        const isLastPhase = i === lastExecutablePhase;
         // Resolve tasks: use explicit taskIds if present, otherwise match by phaseId
-        const phaseTasks = phase.taskIds?.length
-          ? phase.taskIds
-              .map((id) => taskMap.get(id))
-              .filter((t): t is PhaseTask => t !== undefined)
-          : tasksData.tasks.filter((t) => t.phaseId === phase.id);
+        const phaseTasks = tasksForPhase(phase);
 
         // Skip already-completed phases
         if (completedPhaseIds.includes(phase.id)) {
@@ -305,13 +313,20 @@ export function createImplementNode(executor: IAgentExecutor, selectMemory?: Mem
         }
 
         const promptContext = { isLastPhase, phaseIndex: i, totalPhases };
+        const phaseSummaries: string[] = [];
         const phaseStartTime = Date.now();
         // Record what this phase will ACTUALLY run on, not the pin. Under
         // adaptive routing a phase can span two tiers, so a homogeneous phase
         // reports one id and a mixed one reports every id it used — otherwise
         // the Activity tab would attribute Haiku work to the pinned Opus.
+        const phaseModels = new Set(
+          resolvePhaseModelId(phaseTasks, routing, state.model)?.split(', ') ?? []
+        );
+        if (isLastPhase && phase.parallel && phaseTasks.length > 1 && state.model) {
+          phaseModels.add(state.model);
+        }
         const phaseTimingId = await recordPhaseStart(`implement:${phase.id}`, {
-          modelId: resolvePhaseModelId(phaseTasks, routing, state.model),
+          modelId: [...phaseModels].join(', ') || undefined,
           agentType: executor.agentType,
         });
 
@@ -341,12 +356,10 @@ export function createImplementNode(executor: IAgentExecutor, selectMemory?: Mem
               ...phase,
               taskIds: [task.id],
             };
-            return buildImplementPhasePrompt(
-              stateForPrompt,
-              singleTaskPhase,
-              [task],
-              promptContext
-            );
+            return buildImplementPhasePrompt(stateForPrompt, singleTaskPhase, [task], {
+              ...promptContext,
+              isLastPhase: false,
+            });
           });
           await updatePhasePrompt(phaseTimingId, taskPrompts.join('\n\n---\n\n'));
 
@@ -375,6 +388,24 @@ export function createImplementNode(executor: IAgentExecutor, selectMemory?: Mem
               `  [parallel] Task ${phaseTasks[j].id} complete (${results[j].result.length} chars)`
             );
             accumulate(results[j].usage);
+            phaseSummaries.push(
+              `### Task ${phaseTasks[j].id}\n${compactPhaseHandoff(results[j].result)}`
+            );
+          }
+          if (isLastPhase) {
+            log.info('Running final validation after all parallel tasks have finished');
+            const prompt = buildImplementFinalValidationPrompt(
+              stateForPrompt,
+              phaseSummaries.join('\n\n')
+            );
+            const validation = await retryExecute(
+              executor,
+              prompt,
+              buildExecutorOptions(state, undefined, 'implement'),
+              retryOpts
+            );
+            accumulate(validation.usage);
+            phaseSummaries.push(`### Final validation\n${compactPhaseHandoff(validation.result)}`);
           }
         } else {
           // Sequential: one executor call per run of consecutive tasks that
@@ -385,12 +416,11 @@ export function createImplementNode(executor: IAgentExecutor, selectMemory?: Mem
           for (let b = 0; b < batches.length; b++) {
             const batch = batches[b];
             const batchPhase: PlanPhase = { ...phase, taskIds: batch.tasks.map((t) => t.id) };
-            const prompt = buildImplementPhasePrompt(
-              stateForPrompt,
-              batchPhase,
-              batch.tasks,
-              promptContext
-            );
+            const prompt = buildImplementPhasePrompt(stateForPrompt, batchPhase, batch.tasks, {
+              ...promptContext,
+              isLastPhase: isLastPhase && b === batches.length - 1,
+              earlierWork: phaseSummaries.join('\n\n'),
+            });
 
             const isSingleBatch = batches.length === 1;
             const label = isSingleBatch
@@ -420,6 +450,7 @@ export function createImplementNode(executor: IAgentExecutor, selectMemory?: Mem
                 : `Batch ${b + 1}/${batches.length} complete (${result.result.length} chars)`
             );
             accumulate(result.usage);
+            phaseSummaries.push(`### Batch ${b + 1}\n${compactPhaseHandoff(result.result)}`);
           }
         }
 
@@ -441,6 +472,7 @@ export function createImplementNode(executor: IAgentExecutor, selectMemory?: Mem
         });
 
         completedTasks += phaseTasks.length;
+        writePhaseHandoff(state.specDir, phase.id, phaseSummaries.join('\n\n'), log);
         markPhaseComplete(state.specDir, phase.id, log);
         // Transition board task and sub-tasks to Done (best-effort)
         await setBoardTaskStatus(phase.id, TaskState.Done);

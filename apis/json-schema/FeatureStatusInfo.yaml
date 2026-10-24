@@ -2,6 +2,9 @@ $schema: https://json-schema.org/draft/2020-12/schema
 $id: FeatureStatusInfo.yaml
 type: object
 properties:
+  phaseHandoffs:
+    $ref: RecordImplementationPhaseHandoff.yaml
+    description: Bounded implementation summaries keyed by completed phase ID, reused when continuing or resuming implementation
   phase:
     type: string
     description: Current SDLC phase

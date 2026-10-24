@@ -14,6 +14,26 @@ import {
 } from '@/domain/shared/worktree-config.js';
 
 describe('normalizeWorktreeConfig', () => {
+  it('normalizes and deduplicates explicit copy paths', () => {
+    expect(
+      normalizeWorktreeConfig({ copyPaths: [' assets/ ', '', './assets', 'local\\data'] })
+    ).toEqual({ copyPaths: ['assets', 'local/data'] });
+    expect(normalizeWorktreeConfig({ copyPaths: [' ', ''] })).toBeUndefined();
+  });
+
+  it.each([
+    '../outside',
+    'assets/../outside',
+    '/etc',
+    'C:\\temp',
+    '.git/config',
+    '.',
+    ':(top)**',
+    'a\0b',
+  ])('rejects unsafe copy path %s', (path) => {
+    expect(() => normalizeWorktreeConfig({ copyPaths: [path] })).toThrow(/copy path/i);
+  });
+
   it('returns undefined for an undefined config', () => {
     expect(normalizeWorktreeConfig(undefined)).toBeUndefined();
   });
