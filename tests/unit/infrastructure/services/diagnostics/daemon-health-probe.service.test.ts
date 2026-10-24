@@ -11,6 +11,10 @@ import { DaemonHealthProbeService } from '@/infrastructure/services/diagnostics/
 import { HEALTH_ENDPOINT_PATHS } from '@/infrastructure/services/diagnostics/daemon-health-probe.service.js';
 import type { IDaemonService } from '@/application/ports/output/services/daemon-service.interface.js';
 
+vi.mock('@/infrastructure/services/web-auth/web-auth-token.service.js', () => ({
+  getOrCreateWebAuthToken: () => 'local-test-token',
+}));
+
 function daemonService(overrides: Partial<IDaemonService> = {}): IDaemonService {
   return {
     read: async () => ({ pid: 1234, port: 3417, startedAt: new Date().toISOString() }),
@@ -29,6 +33,15 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 describe('DaemonHealthProbeService', () => {
+  it('authenticates readiness requests with the installation token', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ ok: true }));
+    await new DaemonHealthProbeService(daemonService(), fetchFn).probe();
+    expect(fetchFn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ headers: { 'x-shep-token': 'local-test-token' } })
+    );
+  });
+
   it('reports not running when there is no daemon record', async () => {
     const probe = new DaemonHealthProbeService(daemonService({ read: async () => null }), vi.fn());
     const report = await probe.probe();

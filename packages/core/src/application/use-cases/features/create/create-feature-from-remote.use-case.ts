@@ -43,6 +43,7 @@ export interface CreateFeatureFromRemoteInput {
   push?: boolean;
   openPr?: boolean;
   parentId?: string;
+  parentIds?: string[];
   name?: string;
   description?: string;
   fast?: boolean;
@@ -85,6 +86,7 @@ export class CreateFeatureFromRemoteUseCase {
       push: input.push,
       openPr: input.openPr,
       parentId: input.parentId,
+      ...(input.parentIds ? { parentIds: input.parentIds } : {}),
       name: input.name,
       description: input.description,
       fast: input.fast,
@@ -118,6 +120,7 @@ export class CreateFeatureFromRemoteUseCase {
       push: input.push,
       openPr: input.openPr,
       parentId: input.parentId,
+      ...(input.parentIds ? { parentIds: input.parentIds } : {}),
       name: input.name,
       description: input.description,
       fast: input.fast,
@@ -152,6 +155,7 @@ export class CreateFeatureFromRemoteUseCase {
         push: input.push,
         openPr: input.openPr,
         parentId: input.parentId,
+        ...(input.parentIds ? { parentIds: input.parentIds } : {}),
         name: input.name,
         description: input.description,
         fast: input.fast,

@@ -873,7 +873,11 @@ export function FeatureDrawerTabs({
             forceMount={chatVisited || undefined}
             className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
           >
-            <ChatTab featureId={featureId} worktreePath={featureNode.worktreePath} />
+            <ChatTab
+              featureId={featureId}
+              worktreePath={featureNode.worktreePath}
+              pausesBackgroundTask={featureNode.state === 'running'}
+            />
           </TabsContent>
         ) : null}
 

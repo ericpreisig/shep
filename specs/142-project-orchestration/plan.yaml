@@ -1,0 +1,92 @@
+name: project-orchestration
+relatedFeatures:
+- 045-interactive-agent
+- 141-agent-owned-conflict-coordination
+technologies:
+- TypeScript
+- React
+- SQLite
+- Codex CLI
+relatedLinks: []
+openQuestions: []
+summary: Implement existing Clean Architecture seams in dependency order.
+phases:
+- id: phase-1
+  name: Health probe
+  parallel: false
+  taskIds:
+  - task-1
+- id: phase-2
+  name: Codex interactive chat
+  parallel: false
+  taskIds:
+  - task-2
+- id: phase-3
+  name: Multiple parents
+  parallel: false
+  taskIds:
+  - task-3
+- id: phase-4
+  name: Running corrections
+  parallel: false
+  taskIds:
+  - task-4
+- id: phase-5
+  name: Semantic mind map
+  parallel: false
+  taskIds:
+  - task-5
+- id: phase-6
+  name: End-to-end verification
+  parallel: false
+  taskIds:
+  - task-6
+filesToCreate:
+- packages/core/src/infrastructure/services/agents/common/executors/codex-cli-interactive-executor.service.ts
+- packages/core/src/domain/shared/feature-dependencies.ts
+- packages/core/src/application/use-cases/features/correct-feature.use-case.ts
+- packages/core/src/application/use-cases/mind-map/get-project-mind-map.use-case.ts
+- src/presentation/web/app/mind-map/page.tsx
+filesToModify:
+- tsp/domain/entities/feature.tsp
+- packages/core/src/infrastructure/services/diagnostics/daemon-health-probe.service.ts
+- packages/core/src/infrastructure/repositories/sqlite-feature.repository.ts
+- src/presentation/web/components/common/feature-create-drawer/feature-create-drawer.tsx
+content: '## Status
+
+  Phase: Implementation
+
+
+  ## Architecture Overview
+
+  Web actions -> application use cases -> domain contracts and repository ports <- SQLite and agent infrastructure.
+
+
+  ## Implementation Strategy
+
+  Keep current single-parent compatibility while centralizing the full parent list. Resolve interactive
+  Codex through the existing factory. Use current lifecycle stop/resume primitives and durable correction
+  prompts. The mind map is a separate, persistent semantic projection using existing graph components.
+
+
+  ## Testing Strategy
+
+  RED-GREEN-REFACTOR for each executable phase. Unit coverage targets domain validation and executor lifecycle;
+  integration tests verify SQL round trips and migration backfill. UI tests cover editing guards, corrections
+  and collapsed topic visibility. Exercise actual Codex multi-turn chat in isolated data.
+
+
+  ## Risk Mitigation
+
+  Migration is additive and preserves old parent references. Use separate SHEP_HOME and port for all validation;
+  keep running Forge workers unchanged. Retain the last valid map when AI returns invalid output. Recover
+  stale in-flight generation after server restart.
+
+
+  ## Clean Architecture
+
+  Domain contracts remain TypeSpec-generated. Application use cases depend on existing output ports; SQLite,
+  native CLI execution and the web UI implement those boundaries. AI classification resolves IAgentExecutorProvider
+  at call time.
+
+  '

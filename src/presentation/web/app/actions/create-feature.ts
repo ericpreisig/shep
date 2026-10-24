@@ -32,6 +32,7 @@ interface CreateFeatureInput {
   push?: boolean;
   openPr?: boolean;
   parentId?: string;
+  parentIds?: string[];
   /**
    * Execution mode: Spec/Application (full SDLC), Fast (direct
    * implementation), or Exploration (iterative prototyping). MUST be
@@ -87,6 +88,7 @@ export async function createFeature(
     push,
     openPr,
     parentId,
+    parentIds,
     buildMode,
     fast,
     pending,
@@ -130,6 +132,7 @@ export async function createFeature(
       push: push ?? false,
       openPr: openPr ?? false,
       ...(parentId ? { parentId } : {}),
+      ...(parentIds ? { parentIds } : {}),
       description,
       ...(buildMode ? { buildMode } : {}),
       ...(fast != null ? { fast } : {}),
@@ -160,6 +163,7 @@ export async function createFeature(
           push: push ?? false,
           openPr: openPr ?? false,
           ...(parentId ? { parentId } : {}),
+          ...(parentIds ? { parentIds } : {}),
           ...(buildMode ? { buildMode } : {}),
           ...(fast != null ? { fast } : {}),
           ...(pending ? { pending } : {}),

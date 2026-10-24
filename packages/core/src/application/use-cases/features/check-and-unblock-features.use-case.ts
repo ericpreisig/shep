@@ -37,6 +37,7 @@ import type { IFeatureRepository } from '../../ports/output/repositories/feature
 import type { IAgentRunRepository } from '../../ports/output/agents/agent-run-repository.interface.js';
 import type { IPhaseTimingRepository } from '../../ports/output/agents/phase-timing-repository.interface.js';
 import { satisfiesDependencyGate } from '../../../domain/lifecycle-gates.js';
+import { featureParentIds } from '../../../domain/shared/feature-dependencies.js';
 import { markQueuedForCapacity } from '../../../domain/shared/parallel-feature-limit.js';
 import { SyncFeatureBranchUseCase } from './sync-feature-branch.use-case.js';
 import { SpawnFeatureAgentUseCase } from './spawn-feature-agent.use-case.js';
@@ -70,15 +71,20 @@ export class CheckAndUnblockFeaturesUseCase {
    * @param parentFeatureId - ID of the feature whose children should be evaluated.
    * @returns IDs of the children that were unblocked (empty when the gate is closed).
    */
-  async execute(parentFeatureId: string): Promise<string[]> {
+  async execute(parentFeatureId: string, includeSelf = false): Promise<string[]> {
     // Load parent and verify gate
     const parent = await this.featureRepo.findById(parentFeatureId);
-    if (!parent || !satisfiesDependencyGate(parent)) {
+    const orphan =
+      includeSelf &&
+      parent?.lifecycle === SdlcLifecycle.Blocked &&
+      featureParentIds(parent).length === 0;
+    if (!parent || (!orphan && !satisfiesDependencyGate(parent))) {
       return [];
     }
 
     // Load direct children
     const children = await this.featureRepo.findByParentId(parentFeatureId);
+    if (orphan) children.unshift(parent);
     const unblockedIds: string[] = [];
 
     // Unblock each blocked child
@@ -86,6 +92,20 @@ export class CheckAndUnblockFeaturesUseCase {
       if (child.lifecycle !== SdlcLifecycle.Blocked || child.deletedAt) {
         continue;
       }
+      // Parent edits/completion can happen while metadata and the worktree
+      // are still being initialized. Initialization re-checks the gate.
+      if (!child.specPath) continue;
+      const prerequisites = await Promise.all(
+        featureParentIds(child).map((id) =>
+          id === parent.id ? parent : this.featureRepo.findById(id)
+        )
+      );
+      if (
+        prerequisites.some(
+          (prerequisite) => !prerequisite || !satisfiesDependencyGate(prerequisite)
+        )
+      )
+        continue;
 
       // The dependency gate is open, but a machine slot is a separate question.
       // Taking the slot and transitioning are ONE statement, so this sweep
@@ -118,14 +138,14 @@ export class CheckAndUnblockFeaturesUseCase {
       unblockedIds.push(child.id);
 
       // Rebase child branch onto parent branch (isolated per-child)
-      await this.rebaseChildOntoParent(child, parent);
+      if (child.id !== parent.id) await this.rebaseChildOntoParent(child, parent);
 
       // Spawn through the single spawn path. The sync is skipped because the
       // rebase above already performed it, instrumented for the timeline.
       await this.spawnFeatureAgent.execute({
         feature: child,
         syncBranch: false,
-        parentBranch: parent.branch,
+        ...(child.id !== parent.id ? { parentBranch: parent.branch } : {}),
       });
     }
 

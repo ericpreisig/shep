@@ -24,6 +24,8 @@ import type { EnhancedStepState } from './useChatRuntime';
 
 export interface ChatTabProps {
   featureId: string;
+  /** A chat takes over the task worktree and pauses its background worker. */
+  pausesBackgroundTask?: boolean;
   /**
    * When rendered inside an application page, passing the application
    * id lights up two application-scoped extras in the thread:
@@ -147,6 +149,7 @@ export function isWorkflowInFlight(stepProgress: {
 
 export function ChatTab({
   featureId,
+  pausesBackgroundTask,
   applicationId,
   worktreePath,
   initialAgent,
@@ -159,6 +162,7 @@ export function ChatTab({
   scaffoldingState,
   applicationError,
 }: ChatTabProps) {
+  const { t } = useTranslation('web');
   // Override resolution layers (highest precedence first):
   //   1. `initialAgent` / `initialModel` — pinned by the host (e.g.
   //      `application.agentType` / `application.modelOverride` from the
@@ -510,6 +514,11 @@ export function ChatTab({
   return (
     <ChatBlocksProvider scope={featureId} worktreePath={worktreePath} messages={rawMessages}>
       <div className="flex h-full min-h-0 flex-col">
+        {pausesBackgroundTask ? (
+          <p className="border-b bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+            {t('featureWork.chatTakesOver')}
+          </p>
+        ) : null}
         {/* Header bar — session info + stop/clear.
          *  Hidden when the hosting page wants a flush layout (e.g.
          *  ApplicationPage surfaces session info in its own top bar). */}

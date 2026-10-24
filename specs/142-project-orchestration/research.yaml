@@ -1,0 +1,67 @@
+name: project-orchestration
+relatedFeatures:
+  - 045-interactive-agent
+  - 141-agent-owned-conflict-coordination
+technologies:
+  - TypeScript
+  - React
+  - SQLite
+  - Codex CLI
+relatedLinks: []
+openQuestions: []
+summary: Reuse current executors, lifecycle, persistence and React Flow.
+decisions:
+  - title: Codex chat transport
+    chosen: Adapter around the existing Codex CLI streaming executor with exec resume per turn.
+    rejected:
+      - New provider SDK
+      - Separate authentication flow
+    rationale: Reuses installed CLI, session authentication, cancellation and subprocess diagnostics.
+  - title: Dependency storage
+    chosen: >-
+      Backward-compatible parentIds persisted alongside legacy parentId, with one authoritative
+      normalizer and all-parent gate checks.
+    rejected:
+      - Replace every existing contract at once
+    rationale: >-
+      Old features and existing single-parent callers retain behavior while DAG callers use the
+      complete list.
+  - title: Corrections
+    chosen: >-
+      Stop the worker before persisting a correction and restarting the same worktree, preserving
+      completed work.
+    rejected:
+      - Two simultaneous writers in the worktree
+    rationale: User instructions become durable prompt context with an auditable record.
+  - title: Semantic project map
+    chosen: >-
+      Use the configured IAgentExecutorProvider to generate a persisted, versioned topic tree,
+      normalized to include every feature; render using installed React Flow.
+    rejected:
+      - Hardcoded classifier
+      - New graph dependency
+    rationale: Global regrouping can evolve without changing real dependencies or omitting old work.
+content: >-
+  ## Status
+
+  Phase: Planning
+
+
+  ## Architecture
+
+  Resolve AI through the settings-driven provider. Reuse existing repositories, JSON persistence
+  patterns, executor stream and feature lifecycle use cases. TypeSpec owns new domain contracts. The
+  mind map is a projection of project tasks, not a dependency graph.
+
+
+  ## Security Considerations
+
+  Never print authentication tokens. Validate dependency scope, cycles, map references and
+  correction input. Do not launch another writer until the previous worker has stopped.
+
+
+  ## Performance Implications
+
+  Persist the last usable map. Debounce regeneration and fingerprint feature input; a single
+  in-flight generation per project coalesces concurrent requests. Bound model inputs while always
+  preserving exhaustive membership.

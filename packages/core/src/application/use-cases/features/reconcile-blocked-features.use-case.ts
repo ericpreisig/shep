@@ -28,6 +28,7 @@
  */
 
 import { injectable, inject } from 'tsyringe';
+import { featureParentIds } from '../../../domain/shared/feature-dependencies.js';
 import { randomUUID } from 'node:crypto';
 import { AgentRunStatus, SdlcLifecycle } from '../../../domain/generated/output.js';
 import type { AgentRun, Feature } from '../../../domain/generated/output.js';
@@ -85,9 +86,7 @@ export class ReconcileBlockedFeaturesUseCase {
 
     // One evaluation per distinct parent — CheckAndUnblock already sweeps all of
     // a parent's blocked children in a single call.
-    const parentIds = new Set(
-      blocked.map((feature) => feature.parentId).filter((id): id is string => !!id)
-    );
+    const parentIds = new Set(blocked.flatMap(featureParentIds));
 
     const unblockedFeatureIds = new Set<string>();
 
@@ -108,7 +107,7 @@ export class ReconcileBlockedFeaturesUseCase {
       }
 
       const stillBlocked = blocked.filter(
-        (child) => child.parentId === parentId && !unblockedFeatureIds.has(child.id)
+        (child) => featureParentIds(child).includes(parentId) && !unblockedFeatureIds.has(child.id)
       );
       await this.explainStalledParent(parentId, stillBlocked);
     }

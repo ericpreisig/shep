@@ -47,6 +47,8 @@ import { FeatureCapacityService } from '../capacity/feature-capacity.service.js'
 import { MetadataGenerator } from './metadata-generator.js';
 import { SlugResolver } from './slug-resolver.js';
 import type { CreateFeatureInput, CreateFeatureResult, CreateRecordResult } from './types.js';
+import { CheckAndUnblockFeaturesUseCase } from '../check-and-unblock-features.use-case.js';
+import { featureParentIds } from '../../../../domain/shared/feature-dependencies.js';
 
 @injectable()
 export class CreateFeatureUseCase {
@@ -84,7 +86,9 @@ export class CreateFeatureUseCase {
     @inject('IApplicationRepository')
     private readonly applicationRepo: IApplicationRepository,
     @inject('ITelemetry')
-    private readonly telemetry: ITelemetry
+    private readonly telemetry: ITelemetry,
+    @inject(CheckAndUnblockFeaturesUseCase, { isOptional: true })
+    private readonly checkAndUnblock?: CheckAndUnblockFeaturesUseCase
   ) {}
 
   /**
@@ -144,16 +148,26 @@ export class CreateFeatureUseCase {
       shouldSpawn = false;
     }
 
-    if (input.parentId) {
-      const parent = await this.featureRepo.findById(input.parentId);
+    const explicitParents = input.parentIds !== undefined;
+    const parentIds = [...new Set(input.parentIds ?? (input.parentId ? [input.parentId] : []))];
+    if (parentIds.length > 0) {
+      input = { ...input, parentId: parentIds[0], parentIds };
+      const parent = await this.featureRepo.findById(parentIds[0]);
       if (!parent) {
         throw new Error(`Parent feature not found: ${input.parentId}`);
+      }
+      if (
+        explicitParents &&
+        input.repositoryPath &&
+        parent.repositoryPath !== input.repositoryPath
+      ) {
+        throw new Error('Features must be in the same repository to form a dependency.');
       }
 
       effectiveRepoPath = parent.repositoryPath;
 
       // Cycle detection — O(depth) upward walk through ancestor chain
-      const visited = new Set<string>([input.parentId]);
+      const visited = new Set<string>([parentIds[0]]);
       let cursor = parent.parentId;
       while (cursor) {
         if (visited.has(cursor)) {
@@ -173,6 +187,17 @@ export class CreateFeatureUseCase {
           initialLifecycle = SdlcLifecycle.Started;
           shouldSpawn = true;
         }
+      }
+    }
+
+    for (const parentId of parentIds.slice(1)) {
+      const parent = await this.featureRepo.findById(parentId);
+      if (!parent) throw new Error(`Parent feature not found: ${parentId}`);
+      if (parent.repositoryPath !== effectiveRepoPath)
+        throw new Error('Parent features must belong to the same repository');
+      if (!input.pending && !satisfiesDependencyGate(parent)) {
+        initialLifecycle = SdlcLifecycle.Blocked;
+        shouldSpawn = false;
       }
     }
 
@@ -265,6 +290,7 @@ export class CreateFeatureUseCase {
       specPath: '',
       repositoryId: repository.id,
       ...(input.parentId ? { parentId: input.parentId } : {}),
+      ...(input.parentIds ? { parentIds } : {}),
       ...(queuedAt ? { queuedAt } : {}),
       iterationCount: 0,
       bedrockEnabled: false,
@@ -419,9 +445,11 @@ export class CreateFeatureUseCase {
       }
     }
 
+    // Preserve prerequisite edits made while slow AI metadata generation ran.
+    const latest = await this.featureRepo.findById(feature.id);
     // Update feature record with refined metadata, branch, specPath, and attachments
     const updatedFeature: Feature = {
-      ...feature,
+      ...(latest?.id === feature.id ? latest : feature),
       // A name or description the caller chose (e.g. "Fix PAY-42: …" from the bug
       // loop) wins over the generated one.
       name: input.name ?? metadata.name,
@@ -491,6 +519,18 @@ export class CreateFeatureUseCase {
       );
     }
 
+    if (
+      !shouldSpawn &&
+      updatedFeature.lifecycle === SdlcLifecycle.Blocked &&
+      this.checkAndUnblock
+    ) {
+      const parents = featureParentIds(updatedFeature);
+      if (parents.length) {
+        for (const parentId of parents) await this.checkAndUnblock.execute(parentId);
+      } else {
+        await this.checkAndUnblock.execute(feature.id, true);
+      }
+    }
     return { warning, updatedFeature };
   }
 }

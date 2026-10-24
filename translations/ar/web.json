@@ -494,7 +494,8 @@
     "opportunities": "الفرص",
     "incidents": "الحوادث",
     "factory": "المصنع",
-    "chat": "الدردشة"
+    "chat": "الدردشة",
+    "mindMap": "Mind map"
   },
   "sidebar": {
     "features": "الميزات",
@@ -2034,5 +2035,43 @@
       "AwaitingUpstream": "بانتظار المصدر",
       "Archived": "مؤرشفة"
     }
+  },
+  "featureWork": {
+    "parents": "Prerequisites",
+    "parentsHint": "Wait for every selected task. You can edit this list until execution starts.",
+    "parentsLocked": "Dependencies are locked after execution starts.",
+    "saveParents": "Save prerequisites",
+    "parentsSaved": "Prerequisites updated",
+    "correct": "Correct the running task",
+    "correctHint": "The current worker stops first. Your correction is saved, applied to the existing work, then execution resumes.",
+    "placeholder": "Keep the combat system, but change the camera and reduce the visual effects…",
+    "sendCorrection": "Apply correction and resume",
+    "applying": "Applying…",
+    "correctionSent": "Correction saved; execution resumed",
+    "failed": "The change could not be applied",
+    "history": "Previous corrections",
+    "chatTakesOver": "Sending a message pauses background execution so you can continue here. Use “Correct the running task” to apply a correction and resume automatically."
+  },
+  "mindMap": {
+    "title": "Project mind map",
+    "description": "The entire app, organized by meaning. Open a theme to explore its tasks and conversations.",
+    "project": "Project",
+    "regroup": "Reorganize with AI",
+    "search": "Search themes or tasks…",
+    "organizing": "AI is reorganizing the project…",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "projectChat": "Project chat",
+    "keepLast": "The last map remains available.",
+    "loading": "Loading the project…",
+    "emptyTasks": "New tasks will appear here automatically.",
+    "emptyProjects": "Add a repository to explore its mind map.",
+    "coverage": "{{total}} tasks in the project · {{visible}} visible · {{themes}} themes",
+    "evolving": "Themes evolve as the app grows.",
+    "taskCount_one": "{{count}} task",
+    "taskCount_other": "{{count}} tasks",
+    "chat": "Chat",
+    "expandTopic": "Expand {{topic}}",
+    "collapseTopic": "Collapse {{topic}}"
   }
 }

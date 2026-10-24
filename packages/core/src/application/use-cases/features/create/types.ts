@@ -14,6 +14,7 @@ export interface CreateFeatureInput {
   openPr?: boolean;
   /** Optional ID of the parent feature. When set, child may be created in Blocked state. */
   parentId?: string;
+  parentIds?: string[];
   /**
    * Optional ID of the parent application. When set, the new feature is rendered
    * as a child of the application on the Control Center canvas and queryable by

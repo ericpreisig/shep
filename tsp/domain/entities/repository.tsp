@@ -37,3 +37,19 @@ model Repository extends SoftDeletableEntity {
   @doc("Whether project-bedrock memory integration is enabled for this repository (defaults to false in persistence)")
   bedrockEnabled?: boolean;
 }
+
+@doc("A semantic project topic; its hierarchy is independent of task dependencies")
+model MindMapTopic {
+  id: string;
+  label: string;
+  parentId?: string;
+  featureIds: UUID[];
+}
+
+@doc("An exhaustive, AI-organized thematic projection of one repository")
+model ProjectMindMap {
+  repositoryId: UUID;
+  fingerprint: string;
+  topics: MindMapTopic[];
+  generatedAt: utcDateTime;
+}

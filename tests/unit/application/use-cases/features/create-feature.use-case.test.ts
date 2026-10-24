@@ -260,6 +260,20 @@ describe('CreateFeatureUseCase', () => {
   // -------------------------------------------------------------------------
 
   describe('without parentId (baseline)', () => {
+    it('preserves parents edited while AI initialization was running', async () => {
+      const input = { ...baseInput, pending: true };
+      const { feature } = await useCase.createRecord(input);
+      mockFeatureRepo.findById = vi
+        .fn()
+        .mockResolvedValue({ ...feature, parentId: 'new-a', parentIds: ['new-a', 'new-b'] });
+      const result = await useCase.initializeAndSpawn(feature, input, false);
+      expect(result.updatedFeature.parentIds).toEqual(['new-a', 'new-b']);
+      expect(mockFeatureRepo.update).toHaveBeenCalledWith(
+        expect.objectContaining({ id: feature.id, parentIds: ['new-a', 'new-b'] })
+      );
+      expect(mockAgentProcess.spawn).not.toHaveBeenCalled();
+    });
+
     it('records feature.created with the build mode and agent type only (spec 133)', async () => {
       await useCase.execute(baseInput);
 

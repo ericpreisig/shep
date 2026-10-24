@@ -45,8 +45,8 @@ export class ListChatConversationsUseCase {
   async execute(): Promise<ChatConversation[]> {
     const [repositories, features, applications] = await Promise.all([
       this.repositories.list(),
-      // The default filters leave out archived and deleted features.
-      this.features.list(),
+      // Archived work remains navigable from the exhaustive project mind map.
+      this.features.list({ includeArchived: true }),
       this.applications.list(),
     ]);
     const repositoryNames = new Map(repositories.map((r) => [r.path, r.name]));

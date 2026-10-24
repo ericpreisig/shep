@@ -1,3 +1,4 @@
+import { featureParentIds } from '@shepai/core/domain/shared/feature-dependencies';
 import type {
   Feature,
   Repository,
@@ -174,8 +175,8 @@ export function buildGraphNodes(
 
   // Add parent→child dependency edges
   for (const { feature } of featuresWithRuns) {
-    if (feature.parentId) {
-      const parentNodeId = `feat-${feature.parentId}`;
+    for (const parentId of featureParentIds(feature)) {
+      const parentNodeId = `feat-${parentId}`;
       const childNodeId = `feat-${feature.id}`;
       if (nodes.some((n) => n.id === parentNodeId) && nodes.some((n) => n.id === childNodeId)) {
         edges.push({
@@ -277,11 +278,12 @@ function appendFeatureNodes(
   sorted.forEach(({ feature, run }) => {
     // Resolve blockedBy display name from parent feature
     let blockedBy: string | undefined;
-    if (feature.parentId && feature.lifecycle === 'Blocked') {
-      const parentEntry = allFeaturesWithRuns.find((e) => e.feature.id === feature.parentId);
-      if (parentEntry) {
-        blockedBy = parentEntry.feature.name;
-      }
+    if (feature.lifecycle === 'Blocked') {
+      blockedBy =
+        allFeaturesWithRuns
+          .filter((entry) => featureParentIds(feature).includes(entry.feature.id))
+          .map((entry) => entry.feature.name)
+          .join(', ') || undefined;
     }
 
     // The agent's coordination decision, with the peer resolved to a name
@@ -302,6 +304,7 @@ function appendFeatureNodes(
       name: feature.name,
       description: feature.description ?? feature.slug,
       featureId: feature.id,
+      parentIds: featureParentIds(feature),
       lifecycle: deriveLifecycle(feature, run),
       repositoryPath: feature.repositoryPath,
       branch: feature.branch,
@@ -374,7 +377,7 @@ function appendFeatureNodes(
     }
 
     // Child features connect via parent→child dependency edge, not directly to repo
-    if (!feature.parentId) {
+    if (!featureParentIds(feature).length) {
       edges.push({
         id: `edge-${repoNodeId}-${featureNodeId}`,
         source: repoNodeId,

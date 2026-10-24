@@ -42,6 +42,7 @@ import {
   startClaimedResumeWorker,
 } from './resume-run-claim.js';
 import { effortField } from '../../../domain/shared/agent-effort.js';
+import { StopInteractiveSessionUseCase } from '../interactive/stop-interactive-session.use-case.js';
 
 const GATE_DECISION_FIELD = 'gate.rejection';
 
@@ -77,7 +78,9 @@ export class RejectAgentRunUseCase {
     @inject('IActivityLogRepository')
     private readonly activityLog: IActivityLogRepository,
     @inject('ISettingsRepository')
-    private readonly settingsRepository: ISettingsRepository
+    private readonly settingsRepository: ISettingsRepository,
+    @inject(StopInteractiveSessionUseCase, { isOptional: true })
+    private readonly stopChat?: StopInteractiveSessionUseCase
   ) {}
 
   async execute(
@@ -206,8 +209,9 @@ export class RejectAgentRunUseCase {
     // Narrowed above; captured so the spawn closure keeps the narrowing.
     const specPath = feature.specPath;
 
-    await startClaimedResumeWorker(this.agentRunRepository, id, run.status, async () =>
-      this.processService.spawn(
+    await startClaimedResumeWorker(this.agentRunRepository, id, run.status, async () => {
+      if (run.featureId) await this.stopChat?.execute({ featureId: run.featureId });
+      return this.processService.spawn(
         run.featureId ?? '',
         id,
         feature.repositoryPath,
@@ -232,8 +236,8 @@ export class RejectAgentRunUseCase {
           ...(feature.fast ? { fast: true } : {}),
           securityMode: (await this.settingsRepository.load())?.security?.mode,
         }
-      )
-    );
+      );
+    });
 
     if (actor) {
       await this.recordGateDecision(id, actor, 'rejected', now);

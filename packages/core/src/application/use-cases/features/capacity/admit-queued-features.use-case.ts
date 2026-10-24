@@ -28,6 +28,7 @@ import type { Feature } from '../../../../domain/generated/output.js';
 import { SdlcLifecycle, BuildMode } from '../../../../domain/generated/output.js';
 import type { IFeatureRepository } from '../../../ports/output/repositories/feature-repository.interface.js';
 import { satisfiesDependencyGate } from '../../../../domain/lifecycle-gates.js';
+import { featureParentIds } from '../../../../domain/shared/feature-dependencies.js';
 import { UNLIMITED_PARALLEL_FEATURES } from '../../../../domain/shared/parallel-feature-limit.js';
 import { SpawnFeatureAgentUseCase } from '../spawn-feature-agent.use-case.js';
 import { FeatureCapacityService } from './feature-capacity.service.js';
@@ -109,11 +110,10 @@ export class AdmitQueuedFeaturesUseCase {
    * rebase it onto nothing.
    */
   private async isDependencyGateOpen(feature: Feature): Promise<boolean> {
-    if (!feature.parentId) {
-      return true;
-    }
-    const parent = await this.featureRepo.findById(feature.parentId);
-    return parent !== null && satisfiesDependencyGate(parent);
+    const parents = await Promise.all(
+      featureParentIds(feature).map((id) => this.featureRepo.findById(id))
+    );
+    return parents.every((parent) => parent !== null && satisfiesDependencyGate(parent));
   }
 
   /**

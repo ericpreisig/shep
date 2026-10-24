@@ -88,7 +88,7 @@ export class SQLiteFeatureRepository implements IFeatureRepository {
         pr_url, pr_number, pr_status, commit_hash, ci_status,
         ci_fix_attempts, ci_fix_history, pr_mergeable,
         upstream_pr_url, upstream_pr_number, upstream_pr_status,
-        parent_id, coordination, previous_lifecycle, attachments,
+        parent_id, parent_ids, execution_corrections, execution_corrections_applied, coordination, previous_lifecycle, attachments,
         inject_skills, injected_skills, bedrock_enabled,
         active_plugins,
         source_agent_session_id, source_agent_type,
@@ -107,7 +107,7 @@ export class SQLiteFeatureRepository implements IFeatureRepository {
         @pr_url, @pr_number, @pr_status, @commit_hash, @ci_status,
         @ci_fix_attempts, @ci_fix_history, @pr_mergeable,
         @upstream_pr_url, @upstream_pr_number, @upstream_pr_status,
-        @parent_id, @coordination, @previous_lifecycle, @attachments,
+        @parent_id, @parent_ids, @execution_corrections, @execution_corrections_applied, @coordination, @previous_lifecycle, @attachments,
         @inject_skills, @injected_skills, @bedrock_enabled,
         @active_plugins,
         @source_agent_session_id, @source_agent_type,
@@ -210,10 +210,51 @@ export class SQLiteFeatureRepository implements IFeatureRepository {
 
   async findByParentId(parentId: string): Promise<Feature[]> {
     const stmt = this.db.prepare(
-      'SELECT * FROM features WHERE parent_id = ? ORDER BY created_at ASC'
+      `SELECT * FROM features WHERE EXISTS (
+        SELECT 1 FROM json_each(COALESCE(features.parent_ids,
+          CASE WHEN features.parent_id IS NULL THEN '[]' ELSE json_array(features.parent_id) END))
+        WHERE value = ?
+      ) ORDER BY created_at ASC`
     );
     const rows = stmt.all(parentId) as FeatureRow[];
     return rows.map(fromDatabase);
+  }
+
+  async updateDependenciesBeforeStart(featureId: string, parentIds: string[]): Promise<boolean> {
+    const result = this.db
+      .prepare(
+        `
+      UPDATE features SET parent_id = @first, parent_ids = @parents, coordination = NULL,
+        updated_at = @now
+      WHERE id = @id AND deleted_at IS NULL AND lifecycle IN ('Pending', 'Blocked')
+        AND NOT EXISTS (SELECT 1 FROM agent_runs
+          WHERE agent_runs.id = features.agent_run_id
+            AND (agent_runs.started_at IS NOT NULL OR agent_runs.status != 'pending'))
+        AND NOT EXISTS (
+          SELECT 1 FROM json_each(@parents) dependency
+          LEFT JOIN features parent ON parent.id = dependency.value AND parent.deleted_at IS NULL
+          WHERE parent.id IS NULL OR parent.repository_path != features.repository_path
+        )
+        AND NOT EXISTS (
+          WITH RECURSIVE ancestors(id) AS (
+            SELECT value FROM json_each(@parents)
+            UNION
+            SELECT dependency.value FROM ancestors
+              JOIN features ancestor ON ancestor.id = ancestors.id,
+              json_each(COALESCE(ancestor.parent_ids,
+                CASE WHEN ancestor.parent_id IS NULL THEN '[]' ELSE json_array(ancestor.parent_id) END)) dependency
+          )
+          SELECT 1 FROM ancestors WHERE id = @id
+        )
+    `
+      )
+      .run({
+        id: featureId,
+        first: parentIds[0] ?? null,
+        parents: JSON.stringify(parentIds),
+        now: Date.now(),
+      });
+    return result.changes === 1;
   }
 
   async countByLifecycles(
@@ -285,6 +326,9 @@ export class SQLiteFeatureRepository implements IFeatureRepository {
         upstream_pr_number = @upstream_pr_number,
         upstream_pr_status = @upstream_pr_status,
         parent_id = @parent_id,
+        parent_ids = @parent_ids,
+        execution_corrections = @execution_corrections,
+        execution_corrections_applied = @execution_corrections_applied,
         coordination = @coordination,
         previous_lifecycle = @previous_lifecycle,
         attachments = @attachments,
@@ -310,6 +354,15 @@ export class SQLiteFeatureRepository implements IFeatureRepository {
     // so the check and the write are the same statement and no other process
     // can slip between them.
     const conditions = ['id = @id', 'deleted_at IS NULL'];
+    // The human dependency edit and start must serialize in SQLite. Re-check
+    // every prerequisite inside the same write that authorizes the worker.
+    conditions.push(`NOT EXISTS (
+      SELECT 1 FROM json_each(COALESCE(features.parent_ids,
+        CASE WHEN features.parent_id IS NULL THEN '[]' ELSE json_array(features.parent_id) END)) dependency
+      LEFT JOIN features parent ON parent.id = dependency.value AND parent.deleted_at IS NULL
+      WHERE parent.id IS NULL OR NOT (parent.lifecycle = 'Maintain'
+        OR (parent.lifecycle = 'Archived' AND parent.previous_lifecycle = 'Maintain'))
+    )`);
     const params: Record<string, unknown> = {
       id: claim.featureId,
       lifecycle: claim.targetLifecycle,

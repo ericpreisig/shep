@@ -1,0 +1,21 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: ProjectMindMap.yaml
+type: object
+properties:
+  repositoryId:
+    $ref: UUID.yaml
+  fingerprint:
+    type: string
+  topics:
+    type: array
+    items:
+      $ref: MindMapTopic.yaml
+  generatedAt:
+    type: string
+    format: date-time
+required:
+  - repositoryId
+  - fingerprint
+  - topics
+  - generatedAt
+description: An exhaustive, AI-organized thematic projection of one repository

@@ -32,6 +32,7 @@ import type { IWorktreeService } from '../../ports/output/services/worktree-serv
 import type { ISettingsRepository } from '../../ports/output/repositories/settings.repository.interface.js';
 import { SyncFeatureBranchUseCase } from './sync-feature-branch.use-case.js';
 import { effortField } from '../../../domain/shared/agent-effort.js';
+import { StopInteractiveSessionUseCase } from '../interactive/stop-interactive-session.use-case.js';
 
 /**
  * Run statuses a restart re-arms to `pending`. The worker only claims a run
@@ -80,7 +81,9 @@ export class SpawnFeatureAgentUseCase {
     @inject('ISettingsRepository')
     private readonly settingsRepository: ISettingsRepository,
     @inject(SyncFeatureBranchUseCase)
-    private readonly syncFeatureBranch: SyncFeatureBranchUseCase
+    private readonly syncFeatureBranch: SyncFeatureBranchUseCase,
+    @inject(StopInteractiveSessionUseCase, { isOptional: true })
+    private readonly stopChat?: StopInteractiveSessionUseCase
   ) {}
 
   async execute(input: SpawnFeatureAgentInput): Promise<SpawnFeatureAgentResult> {
@@ -97,6 +100,8 @@ export class SpawnFeatureAgentUseCase {
     if (!agentRun) {
       return { spawned: false };
     }
+
+    await this.stopChat?.execute({ featureId: feature.id });
 
     if (syncBranch) {
       // Commit whatever is already in the worktree and rebase so the agent

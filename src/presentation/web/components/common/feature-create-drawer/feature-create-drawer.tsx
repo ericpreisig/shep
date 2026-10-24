@@ -42,6 +42,7 @@ import { ReactFileManagerDialog } from '@/components/common/react-file-manager-d
 import { EffortSelect } from '@/components/common/effort-select';
 import { useFeatureFlags } from '@/hooks/feature-flags-context';
 import { addRepository } from '@/app/actions/add-repository';
+import { listFeatureParentChoices } from '@/app/actions/reparent-feature';
 import { BuildMode as BuildModeEnum } from '@shepai/core/domain/generated/output';
 import { normalizeBuildMode } from '@shepai/core/domain/shared/build-mode';
 import { GitHubImportDialog } from '@/components/common/github-import-dialog';
@@ -119,6 +120,7 @@ export interface FeatureCreatePayload {
   enableEvidence: boolean;
   commitEvidence: boolean;
   parentId?: string;
+  parentIds?: string[];
   /** The mode the user picked. Drives which workflow the agent runs. */
   buildMode: BuildModeEnum;
   /** When true, skip SDLC phases and implement directly from the prompt. */
@@ -358,7 +360,7 @@ export function FeatureCreateDrawer({
   const [ciWatchEnabled, setCiWatchEnabled] = useState(workflowDefaults?.ciWatchEnabled !== false);
   const [enableEvidence, setEnableEvidence] = useState(defaultEnableEvidence);
   const [commitEvidence, setCommitEvidence] = useState(defaultCommitEvidence);
-  const [parentId, setParentId] = useState<string | undefined>(undefined);
+  const [parentIds, setParentIds] = useState<string[]>([]);
   const [mode, setMode] = useState<BuildMode>(defaultMode);
   const fast = mode === BuildModeEnum.Fast;
   const [pending, setPending] = useState(false);
@@ -379,6 +381,23 @@ export function FeatureCreateDrawer({
   const [selectedRepoPath, setSelectedRepoPath] = useState<string | undefined>(
     validRepoPath || undefined
   );
+  const [parentChoices, setParentChoices] = useState(features ?? []);
+  useEffect(() => {
+    if (!open) return;
+    const path = selectedRepoPath ?? validRepoPath;
+    if (!path) return;
+    let disposed = false;
+    void listFeatureParentChoices(path)
+      .then((choices) => {
+        if (!disposed) setParentChoices(choices);
+      })
+      .catch(() => {
+        /* Supplied choices remain available in offline previews. */
+      });
+    return () => {
+      disposed = true;
+    };
+  }, [open, selectedRepoPath, validRepoPath]);
   const [localRepos, setLocalRepos] = useState<RepositoryOption[]>(repositories ?? []);
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -416,7 +435,7 @@ export function FeatureCreateDrawer({
   // Pre-select parent when initialParentId changes (e.g. (+) button on feature node)
   useEffect(() => {
     if (open && initialParentId) {
-      setParentId(initialParentId);
+      setParentIds([initialParentId]);
     }
   }, [open, initialParentId]);
 
@@ -458,7 +477,7 @@ export function FeatureCreateDrawer({
     setCiWatchEnabled(defaultCiWatch);
     setEnableEvidence(defaultEnableEvidence);
     setCommitEvidence(defaultCommitEvidence);
-    setParentId(undefined);
+    setParentIds([]);
     setSelectedRepoPath(validRepoPath || undefined);
     setLocalRepos(repositories ?? []);
     setMode(defaultMode);
@@ -649,7 +668,7 @@ export function FeatureCreateDrawer({
         ...(overrideAgent ? { agentType: overrideAgent } : {}),
         ...(overrideModel ? { model: overrideModel } : {}),
         ...(overrideEffort ? { effort: overrideEffort } : {}),
-        ...(parentId ? { parentId } : {}),
+        ...(parentIds.length ? { parentId: parentIds[0], parentIds } : {}),
         ...(initialApplicationId ? { applicationId: initialApplicationId } : {}),
         sessionId: sessionIdRef.current,
       });
@@ -678,7 +697,7 @@ export function FeatureCreateDrawer({
       overrideAgent,
       overrideModel,
       overrideEffort,
-      parentId,
+      parentIds,
       initialApplicationId,
       createSound,
       resetForm,
@@ -772,7 +791,7 @@ export function FeatureCreateDrawer({
     }, 0);
   }, []);
 
-  const hasFeatures = features && features.length > 0;
+  const hasFeatures = parentChoices.length > 0;
   const needsRepo = !validRepoPath && !selectedRepoPath;
   const showRepoSelector = !validRepoPath && repositories !== undefined;
 
@@ -1063,7 +1082,7 @@ export function FeatureCreateDrawer({
             </div>
 
             {/* Parent feature selector (only when opened from a feature node) */}
-            {hasFeatures && initialParentId !== undefined ? (
+            {hasFeatures ? (
               <div className="flex flex-col gap-1.5">
                 <Label
                   htmlFor="parent-feature"
@@ -1072,9 +1091,9 @@ export function FeatureCreateDrawer({
                   {t('createDrawer.parentFeature')}
                 </Label>
                 <ParentFeatureCombobox
-                  features={features}
-                  value={parentId}
-                  onChange={setParentId}
+                  features={parentChoices}
+                  value={parentIds}
+                  onChange={setParentIds}
                   disabled={isSubmitting}
                 />
               </div>
@@ -1481,12 +1500,12 @@ export function FeatureCreateDrawer({
 
 interface ParentFeatureComboboxProps {
   features: ParentFeatureOption[];
-  value: string | undefined;
-  onChange: (id: string | undefined) => void;
+  value: string[];
+  onChange: (ids: string[]) => void;
   disabled?: boolean;
 }
 
-function ParentFeatureCombobox({
+export function ParentFeatureCombobox({
   features,
   value,
   onChange,
@@ -1497,7 +1516,7 @@ function ParentFeatureCombobox({
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const selectedFeature = features.find((f) => f.id === value);
+  const selectedFeatures = features.filter((f) => value.includes(f.id));
 
   const filtered = query.trim()
     ? features.filter(
@@ -1509,11 +1528,16 @@ function ParentFeatureCombobox({
 
   const handleSelect = useCallback(
     (id: string | undefined) => {
-      onChange(id);
-      setOpen(false);
+      onChange(
+        id === undefined
+          ? []
+          : value.includes(id)
+            ? value.filter((item) => item !== id)
+            : [...value, id]
+      );
       setQuery('');
     },
-    [onChange]
+    [onChange, value]
   );
 
   useEffect(() => {
@@ -1537,12 +1561,12 @@ function ParentFeatureCombobox({
           data-testid="parent-feature-combobox"
           className={cn(
             'border-input bg-background ring-offset-background focus:ring-ring flex h-9 w-full items-center justify-between rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
-            !selectedFeature && 'text-muted-foreground'
+            selectedFeatures.length === 0 && 'text-muted-foreground'
           )}
         >
           <span className="truncate">
-            {selectedFeature
-              ? `${selectedFeature.name} (${selectedFeature.id.slice(0, 8)})`
+            {selectedFeatures.length
+              ? selectedFeatures.map((feature) => feature.name).join(', ')
               : t('createDrawer.selectParent')}
           </span>
           <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
@@ -1567,20 +1591,25 @@ function ParentFeatureCombobox({
           </div>
 
           {/* Options list */}
-          <div className="max-h-48 overflow-y-auto py-1" role="listbox" aria-label="Features">
+          <div
+            className="max-h-48 overflow-y-auto py-1"
+            role="listbox"
+            aria-label="Features"
+            aria-multiselectable="true"
+          >
             {/* No parent option */}
             <button
               type="button"
               role="option"
-              aria-selected={value === undefined}
+              aria-selected={value.length === 0}
               onClick={() => handleSelect(undefined)}
               className={cn(
                 'hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-2 px-3 py-2 text-sm',
-                value === undefined && 'bg-accent/50'
+                value.length === 0 && 'bg-accent/50'
               )}
               data-testid="parent-feature-option-none"
             >
-              <CheckIcon className={cn('h-4 w-4 shrink-0', value !== undefined && 'invisible')} />
+              <CheckIcon className={cn('h-4 w-4 shrink-0', value.length !== 0 && 'invisible')} />
               <span className="text-muted-foreground italic">{t('createDrawer.noParent')}</span>
             </button>
 
@@ -1594,15 +1623,17 @@ function ParentFeatureCombobox({
                   key={f.id}
                   type="button"
                   role="option"
-                  aria-selected={value === f.id}
+                  aria-selected={value.includes(f.id)}
                   onClick={() => handleSelect(f.id)}
                   className={cn(
                     'hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-2 px-3 py-2 text-sm',
-                    value === f.id && 'bg-accent/50'
+                    value.includes(f.id) && 'bg-accent/50'
                   )}
                   data-testid={`parent-feature-option-${f.id}`}
                 >
-                  <CheckIcon className={cn('h-4 w-4 shrink-0', value !== f.id && 'invisible')} />
+                  <CheckIcon
+                    className={cn('h-4 w-4 shrink-0', !value.includes(f.id) && 'invisible')}
+                  />
                   <span className="truncate">
                     {f.name}{' '}
                     <span className="text-muted-foreground font-mono text-xs">

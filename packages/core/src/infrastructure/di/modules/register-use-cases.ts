@@ -184,6 +184,9 @@ import { SyncFeatureBranchUseCase } from '../../../application/use-cases/feature
 import { GetBranchSyncStatusUseCase } from '../../../application/use-cases/features/get-branch-sync-status.use-case.js';
 import { AutoResolveMergedBranchesUseCase } from '../../../application/use-cases/features/auto-resolve-merged-branches.use-case.js';
 import { ReparentFeatureUseCase } from '../../../application/use-cases/features/reparent-feature.use-case.js';
+import { CorrectFeatureUseCase } from '../../../application/use-cases/features/correct-feature.use-case.js';
+import { GetProjectMindMapUseCase } from '../../../application/use-cases/mind-map/get-project-mind-map.use-case.js';
+import { PrepareFeatureChatUseCase } from '../../../application/use-cases/interactive/prepare-feature-chat.use-case.js';
 import { CoordinateFeatureConflictsUseCase } from '../../../application/use-cases/features/coordinate-feature-conflicts.use-case.js';
 import { CreateApplicationUseCase } from '../../../application/use-cases/applications/create-application.use-case.js';
 import { RunApplicationSetupUseCase } from '../../../application/use-cases/applications/run-application-setup.use-case.js';
@@ -388,6 +391,15 @@ export function registerUseCases(container: DependencyContainer): void {
   container.registerSingleton(GetBranchSyncStatusUseCase);
   container.registerSingleton(AutoResolveMergedBranchesUseCase);
   container.registerSingleton(ReparentFeatureUseCase);
+  container.registerSingleton(CorrectFeatureUseCase);
+  container.registerSingleton(GetProjectMindMapUseCase);
+  container.registerSingleton(PrepareFeatureChatUseCase);
+  container.register('GetProjectMindMapUseCase', {
+    useFactory: (c) => c.resolve(GetProjectMindMapUseCase),
+  });
+  container.register('CorrectFeatureUseCase', {
+    useFactory: (c) => c.resolve(CorrectFeatureUseCase),
+  });
   container.registerSingleton(CoordinateFeatureConflictsUseCase);
   container.registerSingleton(RunApplicationSetupUseCase);
   container.registerSingleton(CreateApplicationUseCase);

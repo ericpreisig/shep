@@ -17,6 +17,7 @@ import {
   KanbanSquare,
   LayoutGrid,
   MessagesSquare,
+  Network,
   Puzzle,
   Server,
   Siren,
@@ -44,6 +45,7 @@ export const SIDEBAR_LINKS: readonly SidebarLink[] = [
   { icon: Home, labelKey: 'controlCenter', href: '/control-center' },
   // Spec 137: the chat-first surface, where work is started, steered and answered.
   { icon: MessagesSquare, labelKey: 'chat', href: '/chats', prefix: true },
+  { icon: Network, labelKey: 'mindMap', href: '/mind-map', prefix: true },
   { icon: LayoutGrid, labelKey: 'applications', href: '/applications' },
   { icon: Server, labelKey: 'clusters', href: '/clusters', prefix: true, flag: 'clusters' },
   { icon: TableProperties, labelKey: 'inventory', href: '/features' },

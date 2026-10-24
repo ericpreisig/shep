@@ -473,6 +473,15 @@ model Feature extends SoftDeletableEntity {
   @doc("Parent feature ID for dependency tracking (optional)")
   parentId?: UUID;
 
+  @doc("All prerequisite feature IDs. Every parent must complete before this feature starts.")
+  parentIds?: UUID[];
+
+  @doc("Durable user corrections applied when restarting this feature's worker")
+  executionCorrections?: string[];
+
+  @doc("Number of durable corrections successfully applied to the current worktree")
+  executionCorrectionsApplied?: integer;
+
   /**
    * The last agent coordination decision for this feature (spec 141).
    *

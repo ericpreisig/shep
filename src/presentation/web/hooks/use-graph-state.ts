@@ -67,7 +67,7 @@ export interface UseGraphStateReturn {
    * Optimistically reparent a feature (set/clear parentNodeId in featureMap).
    * Calls the reparent-feature server action; rolls back on error.
    */
-  reparentFeature: (childNodeId: string, newParentNodeId: string | null) => void;
+  reparentFeature: (childNodeId: string, newParentNodeId: string | string[] | null) => void;
   /**
    * Signal that an optimistic mutation has started. While any mutation is
    * in-flight, `reconcile` becomes a no-op so stale poll data cannot
@@ -94,12 +94,12 @@ function parseMaps(
   clusterMap: Map<string, ClusterEntry>;
 } {
   // Build parentNodeId map from dependency edges
-  const parentByChild = new Map<string, string>();
+  const parentByChild = new Map<string, string[]>();
   // Build cluster→repo linked IDs from cluster edges
   const clusterLinkedRepos = new Map<string, string[]>();
   for (const edge of initialEdges) {
     if (edge.type === 'dependencyEdge') {
-      parentByChild.set(edge.target, edge.source);
+      parentByChild.set(edge.target, [...(parentByChild.get(edge.target) ?? []), edge.source]);
     }
     if (edge.id.startsWith('cluster-edge-')) {
       const repoIds = clusterLinkedRepos.get(edge.source) ?? [];
@@ -118,10 +118,12 @@ function parseMaps(
   for (const node of initialNodes) {
     if (node.type === 'featureNode') {
       const data = node.data as FeatureNodeData;
+      const parents = data.parentIds?.map((id) => `feat-${id}`) ?? parentByChild.get(node.id);
       featureMap.set(node.id, {
         nodeId: node.id,
         data,
-        parentNodeId: parentByChild.get(node.id),
+        parentNodeId: parents?.[0],
+        parentNodeIds: parents,
         ...(data.applicationId && { applicationId: data.applicationId }),
       });
     } else if (node.type === 'repositoryNode') {
@@ -163,7 +165,7 @@ function isFeatureDataUnchanged(data: FeatureNodeData, updates: FeatureDataUpdat
  * Shallow-compare two Maps by key set and entry data (JSON equality).
  * Returns true if they are structurally identical, avoiding unnecessary re-renders.
  */
-function mapsEqual<T extends { data: unknown; parentNodeId?: string }>(
+function mapsEqual<T extends { data: unknown; parentNodeId?: string; parentNodeIds?: string[] }>(
   a: Map<string, T>,
   b: Map<string, T>
 ): boolean {
@@ -172,6 +174,7 @@ function mapsEqual<T extends { data: unknown; parentNodeId?: string }>(
     const bEntry = b.get(key);
     if (!bEntry) return false;
     if (aEntry.parentNodeId !== bEntry.parentNodeId) return false;
+    if (JSON.stringify(aEntry.parentNodeIds) !== JSON.stringify(bEntry.parentNodeIds)) return false;
     if (aEntry.data === bEntry.data) continue;
     if (JSON.stringify(aEntry.data) !== JSON.stringify(bEntry.data)) return false;
   }
@@ -543,6 +546,7 @@ export function useGraphState(
           nodeId,
           data,
           parentNodeId,
+          ...(data.parentIds ? { parentNodeIds: data.parentIds.map((id) => `feat-${id}`) } : {}),
           ...(data.applicationId && { applicationId: data.applicationId }),
         });
         return next;
@@ -651,21 +655,25 @@ export function useGraphState(
   }, []);
 
   const reparentFeatureCallback = useCallback(
-    (childNodeId: string, newParentNodeId: string | null) => {
+    (childNodeId: string, newParentNodeId: string | string[] | null) => {
       // Snapshot previous parentNodeId for rollback
       const entry = featureMapRef.current.get(childNodeId);
       if (!entry) return;
       const prevParentNodeId = entry.parentNodeId;
+      const prevParentNodeIds = entry.parentNodeIds;
+      const parentNodeIds = Array.isArray(newParentNodeId)
+        ? [...new Set(newParentNodeId)]
+        : newParentNodeId
+          ? [
+              ...new Set([
+                ...(entry.parentNodeIds ?? (entry.parentNodeId ? [entry.parentNodeId] : [])),
+                newParentNodeId,
+              ]),
+            ]
+          : [];
 
       // Extract featureId from node ID (strip 'feat-' prefix)
       const featureId = childNodeId.startsWith('feat-') ? childNodeId.slice(5) : childNodeId;
-      // Extract parent featureId (strip 'feat-' prefix), or null for unparent
-      const parentFeatureId = newParentNodeId
-        ? newParentNodeId.startsWith('feat-')
-          ? newParentNodeId.slice(5)
-          : newParentNodeId
-        : null;
-
       // Optimistic update
       mutationCountRef.current++;
       setFeatureMap((prev) => {
@@ -674,13 +682,17 @@ export function useGraphState(
         const next = new Map(prev);
         next.set(childNodeId, {
           ...current,
-          parentNodeId: newParentNodeId ?? undefined,
+          parentNodeId: parentNodeIds[0],
+          parentNodeIds,
         });
         return next;
       });
 
       // Call server action
-      reparentFeatureAction(featureId, parentFeatureId)
+      reparentFeatureAction(
+        featureId,
+        parentNodeIds.map((id) => (id.startsWith('feat-') ? id.slice(5) : id))
+      )
         .then((result) => {
           if (!result.success) {
             // Rollback optimistic update
@@ -688,7 +700,11 @@ export function useGraphState(
               const current = prev.get(childNodeId);
               if (!current) return prev;
               const next = new Map(prev);
-              next.set(childNodeId, { ...current, parentNodeId: prevParentNodeId });
+              next.set(childNodeId, {
+                ...current,
+                parentNodeId: prevParentNodeId,
+                parentNodeIds: prevParentNodeIds,
+              });
               return next;
             });
             toast.error(result.error ?? 'Failed to reparent feature');
@@ -702,7 +718,11 @@ export function useGraphState(
             const current = prev.get(childNodeId);
             if (!current) return prev;
             const next = new Map(prev);
-            next.set(childNodeId, { ...current, parentNodeId: prevParentNodeId });
+            next.set(childNodeId, {
+              ...current,
+              parentNodeId: prevParentNodeId,
+              parentNodeIds: prevParentNodeIds,
+            });
             return next;
           });
           toast.error('Failed to reparent feature');

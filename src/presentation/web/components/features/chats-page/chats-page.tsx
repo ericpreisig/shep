@@ -96,6 +96,13 @@ export function ChatsPage({ conversations, selected, chat }: ChatsPageProps) {
               key={selected.scope}
               featureId={selected.scope}
               worktreePath={selected.worktreePath}
+              pausesBackgroundTask={Boolean(
+                selected.featureId &&
+                  selected.lifecycle &&
+                  !['Pending', 'Blocked', 'Maintain', 'Archived', 'Deleting'].includes(
+                    selected.lifecycle
+                  )
+              )}
               {...(applicationId ? { applicationId } : {})}
             />
           )}

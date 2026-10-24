@@ -2017,6 +2017,18 @@ export type Feature = SoftDeletableEntity & {
    */
   parentId?: UUID;
   /**
+   * All prerequisite feature IDs. Every parent must complete before this feature starts.
+   */
+  parentIds?: UUID[];
+  /**
+   * Durable user corrections applied when restarting this feature's worker
+   */
+  executionCorrections?: string[];
+  /**
+   * Number of durable corrections successfully applied to the current worktree
+   */
+  executionCorrectionsApplied?: integer;
+  /**
    * Last agent coordination decision with an overlapping feature (optional)
    */
   coordination?: FeatureCoordination;
@@ -2907,6 +2919,26 @@ export type Repository = SoftDeletableEntity & {
    * Whether project-bedrock memory integration is enabled for this repository (defaults to false in persistence)
    */
   bedrockEnabled?: boolean;
+};
+
+/**
+ * A semantic project topic; its hierarchy is independent of task dependencies
+ */
+export type MindMapTopic = {
+  id: string;
+  label: string;
+  parentId?: string;
+  featureIds: UUID[];
+};
+
+/**
+ * An exhaustive, AI-organized thematic projection of one repository
+ */
+export type ProjectMindMap = {
+  repositoryId: UUID;
+  fingerprint: string;
+  topics: MindMapTopic[];
+  generatedAt: any;
 };
 export enum SecurityActionCategory {
   DependencyInstall = 'DependencyInstall',

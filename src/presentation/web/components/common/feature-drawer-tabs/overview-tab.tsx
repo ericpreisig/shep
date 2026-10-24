@@ -24,6 +24,7 @@ import {
   Waypoints,
 } from 'lucide-react';
 import { InlineAttachments } from '@/components/common/inline-attachments';
+import { FeatureWorkControls } from '@/components/common/feature-work-controls/feature-work-controls';
 import { CoordinationNote } from '@/components/common/coordination-note';
 import { PrStatus } from '@shepai/core/domain/generated/output';
 import type { CodeReview } from '@shepai/core/domain/generated/output';
@@ -231,6 +232,9 @@ export function OverviewTab({
 
   return (
     <div data-testid="feature-drawer-status" className="pb-4">
+      {data.featureId ? (
+        <FeatureWorkControls key={`${data.featureId}-${data.state}`} featureId={data.featureId} />
+      ) : null}
       {/* ── Progress ── */}
 
       {!isCompleted && data.progress > 0 ? (

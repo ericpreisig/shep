@@ -18,6 +18,7 @@ export interface FeatureEntry {
   data: FeatureNodeData;
   /** If set, this feature connects to a parent feature via a dependency edge (no repo→feature edge). */
   parentNodeId?: string;
+  parentNodeIds?: string[];
   /**
    * If set, this feature was launched scoped to an Application. Matched against
    * ApplicationEntry.data.id to derive an app→feature dependency edge instead of
@@ -256,17 +257,17 @@ export function deriveGraph(
     // If parentNodeId references a feature that's not visible (e.g. archived/filtered),
     // fall through so the child reconnects to its application or repository.
     const appNodeId = entry.applicationId ? appByDomainId.get(entry.applicationId) : undefined;
-    if (
-      entry.parentNodeId &&
-      (featureMap.has(entry.parentNodeId) || pendingMap.has(entry.parentNodeId))
-    ) {
-      // Dependency edge (parent→child feature)
-      edges.push({
-        id: `dep-${entry.parentNodeId}-${nodeId}`,
-        source: entry.parentNodeId,
-        target: nodeId,
-        type: 'dependencyEdge',
-      });
+    const visibleParents = (
+      entry.parentNodeIds ?? (entry.parentNodeId ? [entry.parentNodeId] : [])
+    ).filter((id) => featureMap.has(id) || pendingMap.has(id));
+    if (visibleParents.length) {
+      for (const parentId of visibleParents)
+        edges.push({
+          id: `dep-${parentId}-${nodeId}`,
+          source: parentId,
+          target: nodeId,
+          type: 'dependencyEdge',
+        });
     } else if (appNodeId) {
       // Application→feature dep edge (SDD-mode features launched from an app)
       edges.push({

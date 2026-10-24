@@ -382,6 +382,10 @@ export function useControlCenterState(
         toast.error('Completed features cannot be reparented');
         return;
       }
+      if (!['pending', 'blocked'].includes(childEntry.data.state)) {
+        toast.error('Dependencies can only be changed before the task starts');
+        return;
+      }
 
       // All client-side checks passed — delegate to reparentFeature for optimistic update + server call
       reparentFeature(target, source);
@@ -391,14 +395,24 @@ export function useControlCenterState(
 
   const handleEdgesDelete = useCallback(
     (deletedEdges: Edge[]) => {
+      const removedByChild = new Map<string, Set<string>>();
       for (const edge of deletedEdges) {
         // Only process dependency edges — ignore repo-to-feature edges
         if (edge.type !== 'dependencyEdge') continue;
-        // target is the child feature node ID
-        reparentFeature(edge.target, null);
+        const removed = removedByChild.get(edge.target) ?? new Set<string>();
+        removed.add(edge.source);
+        removedByChild.set(edge.target, removed);
+      }
+      for (const [childId, removed] of removedByChild) {
+        const entry = getFeatureEntry(childId);
+        const parents = entry?.parentNodeIds ?? (entry?.parentNodeId ? [entry.parentNodeId] : []);
+        reparentFeature(
+          childId,
+          parents.filter((parent) => !removed.has(parent))
+        );
       }
     },
-    [reparentFeature]
+    [getFeatureEntry, reparentFeature]
   );
 
   const createFeatureNode = useCallback(
@@ -415,6 +429,7 @@ export function useControlCenterState(
         name: dataOverride?.name ?? 'New Feature',
         description: dataOverride?.description ?? 'Describe what this feature does',
         featureId: dataOverride?.featureId ?? `#${id.slice(-4)}`,
+        ...(dataOverride?.parentIds ? { parentIds: dataOverride.parentIds } : {}),
         lifecycle: 'requirements',
         state: dataOverride?.state ?? 'running',
         progress: 0,

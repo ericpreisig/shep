@@ -27,10 +27,14 @@
  */
 
 import { injectable, inject } from 'tsyringe';
+import { featureParentIds } from '../../../../domain/shared/feature-dependencies.js';
 import { SdlcLifecycle } from '../../../../domain/generated/output.js';
 import type { IFeatureRepository } from '../../../ports/output/repositories/feature-repository.interface.js';
 import type { ILogger } from '../../../ports/output/services/logger.interface.js';
-import { allowsLifecycleWrite } from '../../../../domain/lifecycle-gates.js';
+import {
+  allowsLifecycleWrite,
+  GATE_EXEMPT_LIFECYCLES,
+} from '../../../../domain/lifecycle-gates.js';
 import { CheckAndUnblockFeaturesUseCase } from '../check-and-unblock-features.use-case.js';
 import { AdmitQueuedFeaturesUseCase } from '../capacity/admit-queued-features.use-case.js';
 import { CoordinateFeatureConflictsUseCase } from '../coordinate-feature-conflicts.use-case.js';
@@ -66,7 +70,24 @@ export class UpdateFeatureLifecycleUseCase {
       feature.lifecycle === SdlcLifecycle.Blocked && feature.parentId
         ? await this.featureRepo.findById(feature.parentId)
         : null;
-    if (!allowsLifecycleWrite(feature, parent, input.lifecycle)) {
+    const parents =
+      feature.parentIds && feature.lifecycle === SdlcLifecycle.Blocked
+        ? await Promise.all(featureParentIds(feature).map((id) => this.featureRepo.findById(id)))
+        : [parent];
+    if (
+      (feature.parentIds &&
+        feature.lifecycle === SdlcLifecycle.Blocked &&
+        !GATE_EXEMPT_LIFECYCLES.has(input.lifecycle) &&
+        parents.some((candidate) => !candidate)) ||
+      parents.some(
+        (candidate) =>
+          !allowsLifecycleWrite(
+            { ...feature, parentId: candidate?.id ?? feature.parentId },
+            candidate,
+            input.lifecycle
+          )
+      )
+    ) {
       // A refused write resolves exactly like an accepted one, so without this
       // line a user action on the canvas that silently does nothing has no
       // explanation anywhere. Warn rather than throw: the common caller is an

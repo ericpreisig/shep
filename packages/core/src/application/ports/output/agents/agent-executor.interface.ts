@@ -82,6 +82,9 @@ export interface AgentExecutionStreamEvent {
    * here — never in `content`, which callers treat as the answer.
    */
   sessionId?: string;
+  /** Optional structured activity classification for interactive adapters. */
+  kind?: 'text' | 'tool_use' | 'tool_result' | 'status';
+  usage?: AgentExecutionUsage;
 }
 
 /**
@@ -101,6 +104,8 @@ export interface SecurityConstraints {
  * Options for controlling agent execution behavior.
  */
 export interface AgentExecutionOptions {
+  /** Restrict analysis-only subprocess calls to a read-only worktree. */
+  readOnly?: boolean;
   /** Working directory for the agent */
   cwd?: string;
   /** Tools the agent is allowed to use */

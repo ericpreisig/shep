@@ -14,6 +14,7 @@
  */
 
 import { injectable, inject } from 'tsyringe';
+import { featureParentIds } from '../../../domain/shared/feature-dependencies.js';
 import type { Feature } from '../../../domain/generated/output.js';
 import { AgentRunStatus, PrStatus, SdlcLifecycle } from '../../../domain/generated/output.js';
 import type { IFeatureRepository } from '../../ports/output/repositories/feature-repository.interface.js';
@@ -65,7 +66,7 @@ export class DeleteFeatureUseCase {
       await this.cascadeSoftDelete(feature.id);
     } else {
       // Relocate direct children one level up in the hierarchy
-      await this.relocateChildren(feature.id, feature.parentId);
+      await this.relocateChildren(feature.id, featureParentIds(feature));
     }
     await this.markDeletingAndSoftDelete(feature);
 
@@ -87,13 +88,20 @@ export class DeleteFeatureUseCase {
     return feature;
   }
 
-  /** Relocate direct children one level up (set their parentId to the deleted feature's parentId). */
-  private async relocateChildren(parentId: string, newParentId?: string): Promise<void> {
+  /** Preserve other prerequisites and inherit every prerequisite of the removed task. */
+  private async relocateChildren(parentId: string, inheritedParentIds: string[]): Promise<void> {
     const children = await this.featureRepo.findByParentId(parentId);
     for (const child of children) {
+      const parentIds = [
+        ...new Set([
+          ...featureParentIds(child).filter((id) => id !== parentId),
+          ...inheritedParentIds,
+        ]),
+      ];
       await this.featureRepo.update({
         ...child,
-        parentId: newParentId,
+        parentId: parentIds[0],
+        parentIds,
         updatedAt: new Date(),
       });
     }

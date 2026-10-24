@@ -25,6 +25,10 @@ import type { IFeatureRepository } from '../../ports/output/repositories/feature
 import { satisfiesDependencyGate } from '../../../domain/lifecycle-gates.js';
 import { StopAgentRunUseCase } from '../agents/stop-agent-run.use-case.js';
 import { CheckAndUnblockFeaturesUseCase } from './check-and-unblock-features.use-case.js';
+import {
+  assertDependencyDag,
+  featureParentIds,
+} from '../../../domain/shared/feature-dependencies.js';
 
 /** Lifecycle states that cannot be reparented. */
 const NON_REPARENTABLE_STATES = new Set<SdlcLifecycle>([
@@ -35,7 +39,8 @@ const NON_REPARENTABLE_STATES = new Set<SdlcLifecycle>([
 
 export interface ReparentFeatureInput {
   featureId: string;
-  parentId: string | null;
+  parentId?: string | null;
+  parentIds?: string[];
   /**
    * The agent decision that drew this edge (spec 141), written in the same
    * update as the edge. Any reparent without one clears the previous record,
@@ -56,7 +61,10 @@ export class ReparentFeatureUseCase {
   ) {}
 
   async execute(input: ReparentFeatureInput): Promise<void> {
-    const { featureId, parentId } = input;
+    if (input.parentIds !== undefined)
+      return this.updateParentsBeforeStart(input.featureId, input.parentIds);
+    const { featureId } = input;
+    const parentId = input.parentId ?? null;
 
     // Self-reparent guard
     if (parentId !== null && featureId === parentId) {
@@ -84,6 +92,7 @@ export class ReparentFeatureUseCase {
       await this.featureRepo.update({
         ...child,
         parentId: undefined,
+        parentIds: [],
         coordination: undefined,
         lifecycle: newLifecycle,
         updatedAt: new Date(),
@@ -118,6 +127,7 @@ export class ReparentFeatureUseCase {
     await this.featureRepo.update({
       ...child,
       parentId,
+      parentIds: [parentId],
       coordination: input.coordination,
       lifecycle: newLifecycle,
       updatedAt: new Date(),
@@ -146,6 +156,31 @@ export class ReparentFeatureUseCase {
     await this.checkAndUnblock.execute(featureId);
   }
 
+  private async updateParentsBeforeStart(featureId: string, ids: string[]): Promise<void> {
+    const child = await this.featureRepo.findById(featureId);
+    if (!child) throw new Error(`Feature not found: ${featureId}`);
+    const parentIds = featureParentIds({ parentIds: ids });
+    const parents = await Promise.all(parentIds.map((id) => this.featureRepo.findById(id)));
+    for (const parent of parents) {
+      if (!parent) throw new Error('Parent feature not found');
+      if (parent.repositoryPath !== child.repositoryPath) {
+        throw new Error('Features must be in the same repository to form a dependency.');
+      }
+    }
+    await assertDependencyDag(featureId, parentIds, async (id) =>
+      featureParentIds((await this.featureRepo.findById(id)) ?? {})
+    );
+    if (!(await this.featureRepo.updateDependenciesBeforeStart(featureId, parentIds))) {
+      throw new Error('Dependencies can only be edited before the task starts');
+    }
+    for (const parentId of parentIds) await this.checkAndUnblock.execute(parentId);
+    // Clearing the final dependency also needs a release; there is no parent
+    // left whose next transition could wake this blocked feature.
+    if (parentIds.length === 0 && child.lifecycle === SdlcLifecycle.Blocked) {
+      await this.checkAndUnblock.execute(featureId, true);
+    }
+  }
+
   /**
    * Stop the feature's agent run, if it has one.
    *
@@ -170,19 +205,8 @@ export class ReparentFeatureUseCase {
    * If the child feature ID is found in the chain, a cycle exists.
    */
   private async detectCycle(childId: string, parentId: string): Promise<void> {
-    const visited = new Set<string>([childId]);
-    let cursor: string | undefined = parentId;
-
-    while (cursor) {
-      if (visited.has(cursor)) {
-        throw new Error(
-          `Cycle detected in feature dependency chain. ` +
-            `Setting ${parentId} as parent of ${childId} would create a circular dependency.`
-        );
-      }
-      visited.add(cursor);
-      const ancestor = await this.featureRepo.findById(cursor);
-      cursor = ancestor?.parentId ?? undefined;
-    }
+    await assertDependencyDag(childId, [parentId], async (id) =>
+      featureParentIds((await this.featureRepo.findById(id)) ?? {})
+    );
   }
 }

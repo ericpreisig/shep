@@ -34,6 +34,7 @@ import { CursorInteractiveExecutor } from './executors/cursor-interactive-execut
 import { DevAgentExecutorService } from './executors/dev-executor.service.js';
 import { GeminiCliExecutorService } from './executors/gemini-cli-executor.service.js';
 import { CodexCliExecutorService } from './executors/codex-cli-executor.service.js';
+import { CodexCliInteractiveExecutor } from './executors/codex-cli-interactive-executor.service.js';
 import { CopilotCliExecutorService } from './executors/copilot-cli-executor.service.js';
 import { OpenRouterExecutorService } from './executors/openrouter-executor.service.js';
 import { TogetherAiExecutorService } from './executors/together-ai-executor.service.js';
@@ -67,10 +68,12 @@ const EXECUTABLE_AGENT_TYPES: ReadonlySet<string> = new Set(
  * exists to prevent for one-shot executors.
  */
 const INTERACTIVE_EXECUTORS: Partial<
-  Record<AgentType, (spawn: SpawnFunction) => IInteractiveAgentExecutor>
+  Record<AgentType, (spawn: SpawnFunction, auth: AgentConfig) => IInteractiveAgentExecutor>
 > = {
   [AgentType.ClaudeCode]: () => new ClaudeCodeInteractiveExecutor(),
   [AgentType.Cursor]: (spawn) => new CursorInteractiveExecutor(spawn),
+  [AgentType.CodexCli]: (spawn, auth) =>
+    new CodexCliInteractiveExecutor(new CodexCliExecutorService(spawn, auth)),
 };
 
 /**
@@ -274,7 +277,7 @@ export class AgentExecutorFactory implements IAgentExecutorFactory {
     _authConfig: AgentConfig
   ): IInteractiveAgentExecutor {
     const build = INTERACTIVE_EXECUTORS[agentType];
-    if (build) return build(this.spawn);
+    if (build) return build(this.spawn, _authConfig);
     const available = Object.keys(INTERACTIVE_EXECUTORS)
       .map((type) => `'${type}'`)
       .join(', ');

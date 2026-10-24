@@ -1,0 +1,135 @@
+name: project-orchestration
+relatedFeatures:
+- 045-interactive-agent
+- 141-agent-owned-conflict-coordination
+technologies:
+- TypeScript
+- React
+- SQLite
+- Codex CLI
+relatedLinks: []
+openQuestions: []
+summary: Six implementation and validation phases.
+tasks:
+- id: task-1
+  title: Health probe
+  description: Port authenticated readiness and verify HTTP headers.
+  state: Done
+  dependencies: []
+  acceptanceCriteria:
+  - Port authenticated readiness and verify HTTP headers.
+  - Existing compatible behavior remains covered by focused tests.
+  tdd:
+    red:
+    - Write failing behavioral tests for health probe.
+    green:
+    - Implement using existing ports, services and components.
+    refactor:
+    - Remove duplication and retain meaningful regression coverage.
+  estimatedEffort: 2h
+- id: task-2
+  title: Codex interactive chat
+  description: Adapt the existing streaming executor, with multi-turn resumption, error and abort handling.
+  state: Done
+  dependencies:
+  - task-1
+  acceptanceCriteria:
+  - Adapt the existing streaming executor, with multi-turn resumption, error and abort handling.
+  - Existing compatible behavior remains covered by focused tests.
+  tdd:
+    red:
+    - Write failing behavioral tests for codex interactive chat.
+    green:
+    - Implement using existing ports, services and components.
+    refactor:
+    - Remove duplication and retain meaningful regression coverage.
+  estimatedEffort: 2h
+- id: task-3
+  title: Multiple parents
+  description: Migrate and validate dependency DAGs, update all scheduling gates and front-end selectors,
+    and inject parent context.
+  state: Done
+  dependencies:
+  - task-2
+  acceptanceCriteria:
+  - Migrate and validate dependency DAGs, update all scheduling gates and front-end selectors, and inject
+    parent context.
+  - Existing compatible behavior remains covered by focused tests.
+  tdd:
+    red:
+    - Write failing behavioral tests for multiple parents.
+    green:
+    - Implement using existing ports, services and components.
+    refactor:
+    - Remove duplication and retain meaningful regression coverage.
+  estimatedEffort: 4h
+- id: task-4
+  title: Running corrections
+  description: Expose durable stop-and-correct from the web feature UI and preserve worktree state.
+  state: Done
+  dependencies:
+  - task-3
+  acceptanceCriteria:
+  - Expose durable stop-and-correct from the web feature UI and preserve worktree state.
+  - Existing compatible behavior remains covered by focused tests.
+  tdd:
+    red:
+    - Write failing behavioral tests for running corrections.
+    green:
+    - Implement using existing ports, services and components.
+    refactor:
+    - Remove duplication and retain meaningful regression coverage.
+  estimatedEffort: 2h
+- id: task-5
+  title: Semantic mind map
+  description: Persist exhaustive AI-generated nested topics and expose a dedicated project view with
+    collapsible nodes, task/chat navigation and automatic regrouping.
+  state: Done
+  dependencies:
+  - task-4
+  acceptanceCriteria:
+  - Persist exhaustive AI-generated nested topics and expose a dedicated project view with collapsible
+    nodes, task/chat navigation and automatic regrouping.
+  - Existing compatible behavior remains covered by focused tests.
+  tdd:
+    red:
+    - Write failing behavioral tests for semantic mind map.
+    green:
+    - Implement using existing ports, services and components.
+    refactor:
+    - Remove duplication and retain meaningful regression coverage.
+  estimatedEffort: 4h
+- id: task-6
+  title: End-to-end verification
+  description: Build and validate the complete fork on isolated data and ports, verify actual Codex chat
+    and rendered workflows.
+  state: Done
+  dependencies:
+  - task-5
+  acceptanceCriteria:
+  - Build and validate the complete fork on isolated data and ports, verify actual Codex chat and rendered
+    workflows.
+  - Existing compatible behavior remains covered by focused tests.
+  tdd:
+    red:
+    - Write failing behavioral tests for end-to-end verification.
+    green:
+    - Implement using existing ports, services and components.
+    refactor:
+    - Remove duplication and retain meaningful regression coverage.
+  estimatedEffort: 2h
+totalEstimate: 16h
+content: '## Summary
+
+  Six tasks across six phases. Task details are exclusively in tasks[].
+
+
+  ## Acceptance Checklist
+
+  - All requested workflows work end-to-end.
+
+  - Focused unit and integration tests pass.
+
+  - Typecheck, TypeSpec, lint and release build pass.
+
+  - Isolated web UI and real Codex session verified.'

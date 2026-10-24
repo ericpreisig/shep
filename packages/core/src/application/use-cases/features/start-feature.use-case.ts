@@ -23,6 +23,7 @@ import { SdlcLifecycle, BuildMode } from '../../../domain/generated/output.js';
 import type { IFeatureRepository } from '../../ports/output/repositories/feature-repository.interface.js';
 import type { IAgentRunRepository } from '../../ports/output/agents/agent-run-repository.interface.js';
 import { satisfiesDependencyGate } from '../../../domain/lifecycle-gates.js';
+import { featureParentIds } from '../../../domain/shared/feature-dependencies.js';
 import { markQueuedForCapacity } from '../../../domain/shared/parallel-feature-limit.js';
 import { SpawnFeatureAgentUseCase } from './spawn-feature-agent.use-case.js';
 import { FeatureCapacityService } from './capacity/feature-capacity.service.js';
@@ -125,10 +126,11 @@ export class StartFeatureUseCase {
     let parent: Feature | null = null;
     let blocked = false;
 
-    if (resolved.parentId) {
-      parent = await this.featureRepo.findById(resolved.parentId);
+    for (const parentId of featureParentIds(resolved)) {
+      parent = await this.featureRepo.findById(parentId);
       if (!parent || !satisfiesDependencyGate(parent)) {
         blocked = true;
+        break;
       }
     }
 

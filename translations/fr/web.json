@@ -494,7 +494,8 @@
     "opportunities": "Opportunités",
     "incidents": "Incidents",
     "factory": "Usine",
-    "chat": "Chat"
+    "chat": "Chat",
+    "mindMap": "Mind map"
   },
   "sidebar": {
     "features": "Fonctionnalités",
@@ -723,8 +724,8 @@
     "repository": "DÉPÔT",
     "describeFeature": "DÉCRIVEZ VOTRE FONCTIONNALITÉ",
     "featurePlaceholder": "ex. Ajouter la connexion GitHub OAuth avec gestion du callback et renouvellement du token...",
-    "parentFeature": "FONCTIONNALITÉ PARENTE",
-    "selectParent": "Sélectionner une fonctionnalité parente...",
+    "parentFeature": "Tâches parentes",
+    "selectParent": "Choisir les tâches parentes…",
     "searchFeatures": "Rechercher des fonctionnalités...",
     "noParent": "Sans parent",
     "noFeaturesFound": "Aucune fonctionnalité trouvée.",
@@ -2034,5 +2035,43 @@
       "AwaitingUpstream": "En attente de l'amont",
       "Archived": "Archivée"
     }
+  },
+  "featureWork": {
+    "parents": "Tâches préalables",
+    "parentsHint": "Attend la fin de toutes les tâches sélectionnées. Modifiable jusqu’au démarrage.",
+    "parentsLocked": "Les dépendances sont verrouillées après le démarrage.",
+    "saveParents": "Enregistrer les dépendances",
+    "parentsSaved": "Dépendances enregistrées",
+    "correct": "Rectifier la tâche en cours",
+    "correctHint": "L’agent s’arrête, puis applique ta correction au travail existant avant de reprendre.",
+    "placeholder": "Garde le système de combat, mais change la caméra et réduis les effets visuels…",
+    "sendCorrection": "Appliquer la correction et reprendre",
+    "applying": "Application…",
+    "correctionSent": "Correction enregistrée ; exécution relancée",
+    "failed": "La modification n’a pas pu être appliquée",
+    "history": "Corrections précédentes",
+    "chatTakesOver": "L’envoi d’un message met l’exécution en pause pour continuer ici. Utilise « Rectifier la tâche en cours » pour corriger puis reprendre automatiquement."
+  },
+  "mindMap": {
+    "title": "Mind map du projet",
+    "description": "Toute l’application, organisée par thèmes. Déplie un thème pour retrouver ses tâches et conversations.",
+    "project": "Projet",
+    "regroup": "Réorganiser avec l’IA",
+    "search": "Rechercher un thème ou une tâche…",
+    "organizing": "L’IA réorganise le projet…",
+    "expandAll": "Tout déplier",
+    "collapseAll": "Tout replier",
+    "projectChat": "Chat du projet",
+    "keepLast": "La dernière carte reste disponible.",
+    "loading": "Chargement du projet…",
+    "emptyTasks": "Les nouvelles tâches apparaîtront ici automatiquement.",
+    "emptyProjects": "Ajoute un dépôt pour découvrir sa mind map.",
+    "coverage": "{{total}} tâches dans le projet · {{visible}} visibles · {{themes}} thèmes",
+    "evolving": "Les thèmes évoluent avec l’application.",
+    "taskCount_one": "{{count}} tâche",
+    "taskCount_other": "{{count}} tâches",
+    "chat": "Chat",
+    "expandTopic": "Déplier {{topic}}",
+    "collapseTopic": "Replier {{topic}}"
   }
 }

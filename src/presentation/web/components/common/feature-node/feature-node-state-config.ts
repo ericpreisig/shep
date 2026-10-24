@@ -202,6 +202,8 @@ export const lifecycleRunningVerbs: Record<FeatureLifecyclePhase, string> = {
 };
 
 export interface FeatureNodeData {
+  /** Complete domain prerequisite IDs, including parents hidden on the canvas. */
+  parentIds?: string[];
   [key: string]: unknown;
   name: string;
   description?: string;

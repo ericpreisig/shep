@@ -86,9 +86,9 @@ describe('ListChatConversationsUseCase', () => {
     expect(f1).toMatchObject({ lifecycle: SdlcLifecycle.Implementation, subtitle: 'cli' });
   });
 
-  it('reads only live features (no archived or deleted ones)', async () => {
+  it('includes archived features so completed tasks can still be adjusted in chat', async () => {
     const { useCase, featureRepo } = build();
     await useCase.execute();
-    expect(featureRepo.list).toHaveBeenCalledWith();
+    expect(featureRepo.list).toHaveBeenCalledWith({ includeArchived: true });
   });
 });

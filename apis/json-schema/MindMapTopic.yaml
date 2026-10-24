@@ -1,0 +1,19 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: MindMapTopic.yaml
+type: object
+properties:
+  id:
+    type: string
+  label:
+    type: string
+  parentId:
+    type: string
+  featureIds:
+    type: array
+    items:
+      $ref: UUID.yaml
+required:
+  - id
+  - label
+  - featureIds
+description: A semantic project topic; its hierarchy is independent of task dependencies

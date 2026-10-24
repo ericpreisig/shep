@@ -379,6 +379,10 @@ export class CodexCliExecutorService implements IAgentExecutor {
       /** True once Codex emitted `turn.completed` — the turn's terminal event. */
       let turnCompleted = false;
       let processClosed = false;
+      let resolveProcessDone!: () => void;
+      const processDone = new Promise<void>((resolve) => {
+        resolveProcessDone = resolve;
+      });
       let timedOut = false;
       let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
@@ -438,12 +442,23 @@ export class CodexCliExecutorService implements IAgentExecutor {
           // it whole made a live consumer render "HelHelloHello world".
           const delta = text.startsWith(emittedText) ? text.slice(emittedText.length) : text;
           emittedText = text;
-          if (delta) channel.push({ type: 'progress', content: delta, timestamp: new Date() });
+          if (delta)
+            channel.push({ type: 'progress', kind: 'text', content: delta, timestamp: new Date() });
           return;
         }
 
         if (type === EVENT_TYPE_ITEM_COMPLETED && isMessage) {
           const text = extractItemText(parsed);
+          if (text && options?.streamProgress) {
+            const remaining = text.startsWith(emittedText) ? text.slice(emittedText.length) : text;
+            if (remaining)
+              channel.push({
+                type: 'progress',
+                kind: 'text',
+                content: remaining,
+                timestamp: new Date(),
+              });
+          }
           if (text) resultText += text;
           emittedText = '';
           return;
@@ -451,13 +466,19 @@ export class CodexCliExecutorService implements IAgentExecutor {
 
         if (type === EVENT_TYPE_ITEM_STARTED && item?.type === ITEM_TYPE_COMMAND) {
           const cmd = asText(item.command ?? item.name) || 'command';
-          channel.push({ type: 'progress', content: `Running: ${cmd}`, timestamp: new Date() });
+          channel.push({
+            type: 'progress',
+            kind: 'tool_use',
+            content: `Running: ${cmd}`,
+            timestamp: new Date(),
+          });
           return;
         }
 
         if (type === EVENT_TYPE_ITEM_COMPLETED && item?.type === ITEM_TYPE_COMMAND) {
           channel.push({
             type: 'progress',
+            kind: 'tool_result',
             content: `Command completed (exit ${asText(item.exit_code)})`,
             timestamp: new Date(),
           });
@@ -465,7 +486,12 @@ export class CodexCliExecutorService implements IAgentExecutor {
         }
 
         if (type === EVENT_TYPE_ITEM_STARTED && item?.type === ITEM_TYPE_FILE_CHANGE) {
-          channel.push({ type: 'progress', content: 'Modifying files', timestamp: new Date() });
+          channel.push({
+            type: 'progress',
+            kind: 'tool_use',
+            content: 'Modifying files',
+            timestamp: new Date(),
+          });
           return;
         }
 
@@ -473,6 +499,7 @@ export class CodexCliExecutorService implements IAgentExecutor {
           const file = asText(item.file ?? item.path);
           channel.push({
             type: 'progress',
+            kind: 'tool_result',
             content: file ? `Modified: ${file}` : 'File change completed',
             timestamp: new Date(),
           });
@@ -488,6 +515,7 @@ export class CodexCliExecutorService implements IAgentExecutor {
             timestamp: new Date(),
           };
           if (sessionId) event.sessionId = sessionId;
+          if (parsed.usage) event.usage = extractUsage(parsed.usage as Record<string, number>);
           channel.push(event);
           return;
         }
@@ -520,6 +548,7 @@ export class CodexCliExecutorService implements IAgentExecutor {
 
       proc.on('error', (error: Error & { code?: string }) => {
         processClosed = true;
+        resolveProcessDone();
         if (timeoutId) clearTimeout(timeoutId);
         channel.push({
           type: 'error',
@@ -531,6 +560,7 @@ export class CodexCliExecutorService implements IAgentExecutor {
 
       proc.on('close', (exitCode: number | null, signal: NodeJS.Signals | null) => {
         processClosed = true;
+        resolveProcessDone();
         if (timeoutId) clearTimeout(timeoutId);
         if (timedOut) return; // already reported by the timeout callback
 
@@ -578,7 +608,10 @@ export class CodexCliExecutorService implements IAgentExecutor {
         postResultExit.stop();
         // A consumer that breaks out of the loop would otherwise leave the
         // agent running until it finished on its own.
-        if (!processClosed) terminateWithEscalation(proc);
+        if (!processClosed) {
+          terminateWithEscalation(proc);
+          await processDone;
+        }
       }
     } finally {
       removeSchemaFile(tempSchemaPath);
@@ -751,7 +784,7 @@ export class CodexCliExecutorService implements IAgentExecutor {
     const baseFlags = [
       '--json',
       '--sandbox',
-      'danger-full-access',
+      options?.readOnly ? 'read-only' : 'danger-full-access',
       '--skip-git-repo-check',
       '--color',
       'never',

@@ -21,6 +21,7 @@ import type { ISettingsRepository } from '../../ports/output/repositories/settin
 import { isRunningLifecycle } from '../../../domain/shared/parallel-feature-limit.js';
 import { FeatureCapacityService } from './capacity/feature-capacity.service.js';
 import { effortField } from '../../../domain/shared/agent-effort.js';
+import { StopInteractiveSessionUseCase } from '../interactive/stop-interactive-session.use-case.js';
 
 const RESUMABLE_STATUSES = new Set<string>([
   AgentRunStatus.interrupted,
@@ -47,7 +48,9 @@ export class ResumeFeatureUseCase {
     @inject('ISettingsRepository')
     private readonly settingsRepository: ISettingsRepository,
     @inject(FeatureCapacityService)
-    private readonly capacity: FeatureCapacityService
+    private readonly capacity: FeatureCapacityService,
+    @inject(StopInteractiveSessionUseCase, { isOptional: true })
+    private readonly stopChat?: StopInteractiveSessionUseCase
   ) {}
 
   async execute(
@@ -105,6 +108,7 @@ export class ResumeFeatureUseCase {
       throw new Error(`Feature "${feature.name}" is missing specPath — cannot resume`);
     }
     const specPath = feature.specPath;
+    await this.stopChat?.execute({ featureId: feature.id });
 
     // Create a new agent run record that continues the same thread
     const now = new Date();

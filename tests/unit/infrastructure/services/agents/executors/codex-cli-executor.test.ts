@@ -1277,6 +1277,7 @@ describe('CodexCliExecutorService', () => {
   describe('executeStream lifetime', () => {
     it('should time out a stream that never closes, naming the budget', async () => {
       const mockProc = createMockChildProcess();
+      exitOnKill(mockProc);
       vi.mocked(mockSpawn).mockReturnValue(mockProc as any);
 
       const events: { type: string; content: string }[] = [];
@@ -1293,6 +1294,7 @@ describe('CodexCliExecutorService', () => {
 
     it('should kill the child when the consumer stops iterating early', async () => {
       const mockProc = createMockChildProcess();
+      exitOnKill(mockProc);
       vi.mocked(mockSpawn).mockReturnValue(mockProc as any);
 
       const gen = executor.executeStream('Test', { silent: true });
@@ -1348,6 +1350,7 @@ describe('CodexCliExecutorService — idle timeout', () => {
 
   it('executeStream(): ends a silent stream with an idle-timeout error event', async () => {
     const proc = createMockChildProcess();
+    exitOnKill(proc);
     vi.mocked(mockSpawn).mockReturnValue(proc as any);
 
     const events: { type: string; content: string }[] = [];

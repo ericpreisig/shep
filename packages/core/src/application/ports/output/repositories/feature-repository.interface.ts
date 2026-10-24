@@ -174,6 +174,9 @@ export interface IFeatureRepository {
    */
   update(feature: Feature): Promise<void>;
 
+  /** Atomic human dependency edit, refused once a worker has started. */
+  updateDependenciesBeforeStart(featureId: string, parentIds: string[]): Promise<boolean>;
+
   /**
    * Returns all direct (non-recursive) children of the given parent feature ID.
    * Children are ordered by creation time ascending.

@@ -27,6 +27,9 @@ import type { IAgentRunRepository } from '@/application/ports/output/agents/agen
 import type { IAgentExecutorProvider } from '@/application/ports/output/agents/agent-executor-provider.interface.js';
 import type { IAgentExecutorFactory } from '@/application/ports/output/agents/agent-executor-factory.interface.js';
 import type { IFeatureRepository } from '@/application/ports/output/repositories/feature-repository.interface.js';
+import { FeatureContextExecutor } from './feature-context-executor.js';
+import type { IInteractiveMessageRepository } from '@/application/ports/output/repositories/interactive-message-repository.interface.js';
+import { applyExecutionCorrections } from './apply-execution-corrections.js';
 import type { IGitPrService } from '@/application/ports/output/services/git-pr-service.interface.js';
 import { type GitRemoteListService } from '@/infrastructure/services/git/git-remote-list.service.js';
 import type { IGitForkService } from '@/application/ports/output/services/git-fork-service.interface.js';
@@ -372,6 +375,12 @@ export async function runWorker(args: WorkerArgs): Promise<void> {
   const gitPrService = container.resolve<IGitPrService>('IGitPrService');
   const gitRemoteListService = container.resolve<GitRemoteListService>('GitRemoteListService');
   const featureRepository = container.resolve<IFeatureRepository>('IFeatureRepository');
+  executor = new FeatureContextExecutor(
+    executor,
+    featureRepository,
+    args.featureId,
+    container.resolve<IInteractiveMessageRepository>('IInteractiveMessageRepository')
+  );
   const cleanupFeatureWorktreeUseCase = container.resolve(CleanupFeatureWorktreeUseCase);
 
   // Per-phase/per-task memory selection ("Shep Brain"): each agent prompt
@@ -533,6 +542,11 @@ export async function runWorker(args: WorkerArgs): Promise<void> {
 
   try {
     const graphConfig = { configurable: { thread_id: checkpointId } };
+    await applyExecutionCorrections(args.featureId, featureRepository, executor, {
+      cwd: args.worktreePath ?? args.repo,
+      ...(args.model ? { model: args.model } : {}),
+      ...(mcpConfigPath ? { mcpConfigPath } : {}),
+    });
 
     let result: Record<string, unknown>;
     if (args.resume && args.resumeFromInterrupt) {

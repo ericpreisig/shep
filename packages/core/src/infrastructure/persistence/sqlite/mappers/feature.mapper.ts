@@ -16,6 +16,7 @@
 
 import type { Feature, FeatureCoordination } from '../../../../domain/generated/output.js';
 import { normalizeRepositoryPath } from '../../../../domain/shared/repository-path.js';
+import { featureParentIds } from '../../../../domain/shared/feature-dependencies.js';
 import {
   BuildMode,
   type SdlcLifecycle,
@@ -85,6 +86,9 @@ export interface FeatureRow {
   upstream_pr_status: string | null;
   // Feature dependency
   parent_id: string | null;
+  parent_ids?: string | null;
+  execution_corrections?: string | null;
+  execution_corrections_applied?: number | null;
   // Agent coordination decision (JSON, spec 141, migration 173)
   coordination?: string | null;
   // Archive state
@@ -169,7 +173,10 @@ export function toDatabase(feature: Feature): FeatureRow {
     upstream_pr_number: feature.pr?.upstreamPrNumber ?? null,
     upstream_pr_status: feature.pr?.upstreamPrStatus ?? null,
     // Feature dependency
-    parent_id: feature.parentId ?? null,
+    parent_id: featureParentIds(feature)[0] ?? null,
+    parent_ids: JSON.stringify(featureParentIds(feature)),
+    execution_corrections: JSON.stringify(feature.executionCorrections ?? []),
+    execution_corrections_applied: feature.executionCorrectionsApplied ?? 0,
     coordination: feature.coordination ? JSON.stringify(feature.coordination) : null,
     // Archive state
     previous_lifecycle: feature.previousLifecycle ?? null,
@@ -270,6 +277,13 @@ export function fromDatabase(row: FeatureRow): Feature {
     }),
     // Feature dependency
     ...(row.parent_id != null && { parentId: row.parent_id }),
+    ...(row.parent_ids != null && { parentIds: JSON.parse(row.parent_ids) as string[] }),
+    ...(row.execution_corrections != null && {
+      executionCorrections: JSON.parse(row.execution_corrections) as string[],
+    }),
+    ...(row.execution_corrections_applied != null && {
+      executionCorrectionsApplied: row.execution_corrections_applied,
+    }),
     ...(row.coordination != null && { coordination: coordinationFromJson(row.coordination) }),
     // Archive state
     ...(row.previous_lifecycle != null && {

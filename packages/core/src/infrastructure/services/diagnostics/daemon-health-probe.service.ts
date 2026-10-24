@@ -13,6 +13,7 @@
  */
 
 import { inject, injectable } from 'tsyringe';
+import { getOrCreateWebAuthToken } from '../web-auth/web-auth-token.service.js';
 
 import type { IDaemonService } from '../../../application/ports/output/services/daemon-service.interface.js';
 import type {
@@ -93,7 +94,10 @@ export class DaemonHealthProbeService implements IDaemonHealthProbe {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
     try {
-      return await this.fetchFn(url, { signal: controller.signal });
+      return await this.fetchFn(url, {
+        signal: controller.signal,
+        headers: { 'x-shep-token': getOrCreateWebAuthToken() },
+      });
     } finally {
       clearTimeout(timer);
     }

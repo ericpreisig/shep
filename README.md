@@ -21,6 +21,8 @@ Shep is the open-source orchestrator for the autonomous development cycle. It ru
 
 ## Quickstart
 
+For the additions in this fork (Codex chat, multiple parents, running corrections and project mind maps), see [Project orchestration](./docs/guides/project-orchestration.md).
+
 ```bash
 npx @shepai/cli        # try it instantly — opens the dashboard at localhost:4050
 npm i -g @shepai/cli   # or install globally

@@ -526,6 +526,20 @@ describe('Canvas reparenting interactions', () => {
   });
 
   describe('handleConnect (drag-to-connect reparenting)', () => {
+    it('preserves hidden archived parents when adding another dependency', async () => {
+      const child = { ...featChild, data: { ...featChild.data, parentIds: ['archived-parent'] } };
+      renderControlCenter([repoNodeDefault, featParent, child]);
+      await act(async () => {
+        capturedCanvasProps.onConnect?.({
+          source: 'feat-parent-1',
+          target: 'feat-child-1',
+          sourceHandle: null,
+          targetHandle: null,
+        });
+      });
+      expect(mockReparentFeature).toHaveBeenCalledWith('child-1', ['archived-parent', 'parent-1']);
+    });
+
     it('calls reparentFeature server action for valid same-repo feature connection', async () => {
       renderControlCenter(reparentNodes);
 
@@ -539,7 +553,7 @@ describe('Canvas reparenting interactions', () => {
       });
 
       // Server action should be called with stripped feature IDs
-      expect(mockReparentFeature).toHaveBeenCalledWith('child-1', 'parent-1');
+      expect(mockReparentFeature).toHaveBeenCalledWith('child-1', ['parent-1']);
     });
 
     it('rejects connections where source is not a feature node', () => {
@@ -619,7 +633,27 @@ describe('Canvas reparenting interactions', () => {
   });
 
   describe('handleEdgesDelete (edge deletion unparenting)', () => {
-    it('calls reparentFeature with null parent for dependency edge deletion', async () => {
+    it('keeps the other parents when deleting one edge of a multi-parent task', async () => {
+      const first: Edge = {
+        id: 'first',
+        source: 'feat-parent-1',
+        target: 'feat-child-1',
+        type: 'dependencyEdge',
+      };
+      const second: Edge = {
+        id: 'second',
+        source: 'feat-done-1',
+        target: 'feat-child-1',
+        type: 'dependencyEdge',
+      };
+      renderControlCenter(reparentNodes, [first, second]);
+      await act(async () => {
+        capturedCanvasProps.onEdgesDelete?.([first]);
+      });
+      expect(mockReparentFeature).toHaveBeenCalledWith('child-1', ['done-1']);
+    });
+
+    it('removes the selected dependency when its edge is deleted', async () => {
       const depEdge: Edge = {
         id: 'dep-1',
         source: 'feat-parent-1',
@@ -633,7 +667,7 @@ describe('Canvas reparenting interactions', () => {
         capturedCanvasProps.onEdgesDelete?.([depEdge]);
       });
 
-      expect(mockReparentFeature).toHaveBeenCalledWith('child-1', null);
+      expect(mockReparentFeature).toHaveBeenCalledWith('child-1', []);
     });
 
     it('ignores non-dependency edges (e.g. repo-to-feature)', async () => {
@@ -674,8 +708,8 @@ describe('Canvas reparenting interactions', () => {
       });
 
       expect(mockReparentFeature).toHaveBeenCalledTimes(2);
-      expect(mockReparentFeature).toHaveBeenCalledWith('child-1', null);
-      expect(mockReparentFeature).toHaveBeenCalledWith('done-1', null);
+      expect(mockReparentFeature).toHaveBeenCalledWith('child-1', []);
+      expect(mockReparentFeature).toHaveBeenCalledWith('done-1', []);
     });
   });
 });

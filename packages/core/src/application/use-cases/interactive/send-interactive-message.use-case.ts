@@ -10,6 +10,7 @@
 import { injectable, inject } from 'tsyringe';
 import type { IInteractiveSessionService } from '../../ports/output/services/interactive-session-service.interface.js';
 import type { InteractiveMessage } from '../../../domain/generated/output.js';
+import { PrepareFeatureChatUseCase } from './prepare-feature-chat.use-case.js';
 
 /**
  * Input for sending a message to an interactive session.
@@ -60,14 +61,17 @@ export interface SendInteractiveMessageInput {
 export class SendInteractiveMessageUseCase {
   constructor(
     @inject('IInteractiveSessionService')
-    private readonly service: IInteractiveSessionService
+    private readonly service: IInteractiveSessionService,
+    @inject(PrepareFeatureChatUseCase, { isOptional: true })
+    private readonly prepare?: PrepareFeatureChatUseCase
   ) {}
 
   async execute(input: SendInteractiveMessageInput): Promise<InteractiveMessage> {
+    const worktreePath = await this.prepare?.execute(input.featureId, input.agentType);
     return this.service.sendUserMessage(
       input.featureId,
       input.content,
-      input.worktreePath,
+      worktreePath ?? input.worktreePath,
       input.model,
       input.agentType,
       input.systemPrompt,

@@ -34,6 +34,7 @@ export function createMockFeatureRepository(
     findByBranch: vi.fn().mockResolvedValue(null),
     list: vi.fn().mockResolvedValue([]),
     update: vi.fn().mockResolvedValue(undefined),
+    updateDependenciesBeforeStart: vi.fn().mockResolvedValue(true),
     findByParentId: vi.fn().mockResolvedValue([]),
     countByLifecycles: vi.fn().mockResolvedValue(0),
     listQueued: vi.fn().mockResolvedValue([]),

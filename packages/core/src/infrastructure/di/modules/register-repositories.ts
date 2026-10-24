@@ -9,6 +9,8 @@ import type { IFeatureRepository } from '../../../application/ports/output/repos
 import { SQLiteFeatureRepository } from '../../repositories/sqlite-feature.repository.js';
 import type { IRepositoryRepository } from '../../../application/ports/output/repositories/repository-repository.interface.js';
 import { SQLiteRepositoryRepository } from '../../repositories/sqlite-repository.repository.js';
+import { SQLiteProjectMindMapRepository } from '../../repositories/sqlite-project-mind-map.repository.js';
+import type { IProjectMindMapRepository } from '../../../application/ports/output/repositories/project-mind-map-repository.interface.js';
 import type { IApplicationRepository } from '../../../application/ports/output/repositories/application-repository.interface.js';
 import { SQLiteApplicationRepository } from '../../repositories/sqlite-application.repository.js';
 import type { IAgentRunRepository } from '../../../application/ports/output/agents/agent-run-repository.interface.js';
@@ -146,6 +148,9 @@ export function registerRepositories(container: DependencyContainer): void {
       const database = c.resolve<Database.Database>('Database');
       return new SQLiteRepositoryRepository(database);
     },
+  });
+  container.register<IProjectMindMapRepository>('IProjectMindMapRepository', {
+    useFactory: (c) => new SQLiteProjectMindMapRepository(c.resolve<Database.Database>('Database')),
   });
 
   container.register<IApplicationRepository>('IApplicationRepository', {

@@ -113,6 +113,19 @@ properties:
   parentId:
     $ref: UUID.yaml
     description: Parent feature ID for dependency tracking (optional)
+  parentIds:
+    type: array
+    items:
+      $ref: UUID.yaml
+    description: All prerequisite feature IDs. Every parent must complete before this feature starts.
+  executionCorrections:
+    type: array
+    items:
+      type: string
+    description: Durable user corrections applied when restarting this feature's worker
+  executionCorrectionsApplied:
+    type: integer
+    description: Number of durable corrections successfully applied to the current worktree
   coordination:
     $ref: FeatureCoordination.yaml
     description: Last agent coordination decision with an overlapping feature (optional)

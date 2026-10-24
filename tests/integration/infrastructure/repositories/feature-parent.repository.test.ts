@@ -97,6 +97,70 @@ describe('Feature parent_id migration and findByParentId', () => {
   });
 
   describe('parentId mapper round-trip', () => {
+    it('checks all parents atomically when claiming a worker slot', async () => {
+      const a = createTestFeature({ id: 'a', slug: 'a', lifecycle: SdlcLifecycle.Maintain });
+      const b = createTestFeature({ id: 'b', slug: 'b', lifecycle: SdlcLifecycle.Implementation });
+      await repository.create(a);
+      await repository.create(b);
+      await repository.create(
+        createTestFeature({
+          id: 'child',
+          slug: 'child',
+          lifecycle: SdlcLifecycle.Blocked,
+          parentIds: ['a', 'b'],
+        })
+      );
+      const claim = {
+        featureId: 'child',
+        targetLifecycle: SdlcLifecycle.Started,
+        requireLifecycle: SdlcLifecycle.Blocked,
+        updatedAt: new Date(),
+      };
+      expect(await repository.claimForStart(claim)).toBe(false);
+      await repository.update({ ...b, lifecycle: SdlcLifecycle.Maintain });
+      expect(await repository.claimForStart(claim)).toBe(true);
+    });
+
+    it('refuses a cycle inside the dependency write, even when callers validated an older graph', async () => {
+      await repository.create(
+        createTestFeature({ id: 'a', slug: 'a', lifecycle: SdlcLifecycle.Pending })
+      );
+      await repository.create(
+        createTestFeature({ id: 'b', slug: 'b', lifecycle: SdlcLifecycle.Pending })
+      );
+      expect(await repository.updateDependenciesBeforeStart('a', ['b'])).toBe(true);
+      expect(await repository.updateDependenciesBeforeStart('b', ['a'])).toBe(false);
+    });
+
+    it('round-trips multiple parents and finds the child through either parent', async () => {
+      await repository.create(createTestFeature({ id: 'a', slug: 'a' }));
+      await repository.create(createTestFeature({ id: 'b', slug: 'b' }));
+      await repository.create(
+        createTestFeature({ id: 'child', slug: 'child', parentIds: ['a', 'b'] })
+      );
+      expect((await repository.findById('child'))?.parentIds).toEqual(['a', 'b']);
+      expect((await repository.findByParentId('a')).map((f) => f.id)).toContain('child');
+      expect((await repository.findByParentId('b')).map((f) => f.id)).toContain('child');
+    });
+
+    it('refuses dependency edits after the worker started', async () => {
+      await repository.create(createTestFeature({ lifecycle: SdlcLifecycle.Implementation }));
+      expect(await repository.updateDependenciesBeforeStart('feat-1', ['a'])).toBe(false);
+    });
+
+    it('atomically replaces dependencies of a pending task, including clearing them', async () => {
+      for (const id of ['a', 'b', 'c'])
+        await repository.create(createTestFeature({ id, slug: id }));
+      await repository.create(
+        createTestFeature({ lifecycle: SdlcLifecycle.Pending, parentIds: ['a'] })
+      );
+      expect(await repository.updateDependenciesBeforeStart('feat-1', ['b', 'c'])).toBe(true);
+      expect((await repository.findById('feat-1'))?.parentIds).toEqual(['b', 'c']);
+      expect(await repository.updateDependenciesBeforeStart('feat-1', [])).toBe(true);
+      expect((await repository.findById('feat-1'))?.parentId).toBeUndefined();
+      expect((await repository.findById('feat-1'))?.parentIds).toEqual([]);
+    });
+
     it('should persist parentId when set on a feature', async () => {
       const parent = createTestFeature({ id: 'parent-1', slug: 'parent' });
       const child = createTestFeature({ id: 'child-1', slug: 'child', parentId: 'parent-1' });

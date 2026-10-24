@@ -164,6 +164,30 @@ function makeUploadFromPathFetch() {
 }
 
 describe('FeatureCreateDrawer', () => {
+  it('submits all selected parents from the existing creation form', async () => {
+    const onSubmit = vi.fn();
+    const user = userEvent.setup();
+    renderDrawer({
+      onSubmit,
+      features: [
+        { id: 'first', name: 'Equipment' },
+        { id: 'second', name: 'Combat' },
+      ],
+    });
+    await user.type(
+      screen.getByPlaceholderText(descriptionPlaceholder),
+      'Combine both prerequisites'
+    );
+    await user.click(screen.getByTestId('parent-feature-combobox'));
+    await user.click(screen.getByTestId('parent-feature-option-first'));
+    await user.click(screen.getByTestId('parent-feature-option-second'));
+    await user.keyboard('{Escape}');
+    await user.click(screen.getByRole('button', { name: '+ Create Feature' }));
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ parentIds: ['first', 'second'], parentId: 'first' })
+    );
+  });
+
   describe('rendering', () => {
     it('renders the drawer header when open', () => {
       renderDrawer();
@@ -623,7 +647,7 @@ describe('FeatureCreateDrawer', () => {
       expect(screen.getByLabelText('Push')).not.toBeChecked();
       expect(screen.getByLabelText('PR')).not.toBeChecked();
       expect(screen.getByTestId('parent-feature-combobox')).toHaveTextContent(
-        'Select parent feature...'
+        'Select parent tasks…'
       );
       expect(screen.queryByText('requirements.pdf')).not.toBeInTheDocument();
     }, 30_000);

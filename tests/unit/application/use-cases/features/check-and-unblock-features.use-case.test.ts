@@ -570,8 +570,8 @@ describe('CheckAndUnblockFeaturesUseCase', () => {
 
     await useCase.execute(parentId);
 
-    // Should still claim the slot and transition, but NOT call spawn
-    expect(capacity.claimSlot).toHaveBeenCalledOnce();
+    // Initialization will re-check dependencies once the worktree/spec is ready.
+    expect(capacity.claimSlot).not.toHaveBeenCalled();
     expect(mockAgentProcess.spawn).not.toHaveBeenCalled();
   });
 });

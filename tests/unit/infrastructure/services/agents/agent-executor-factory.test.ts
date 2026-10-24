@@ -506,9 +506,10 @@ describe('AgentExecutorFactory', () => {
       expect(factory.supportsInteractive(AgentType.Ollama)).toBe(false);
     });
 
-    it('should return true for claude-code and cursor', () => {
+    it('should return true for claude-code, cursor and codex-cli', () => {
       expect(factory.supportsInteractive(AgentType.ClaudeCode)).toBe(true);
       expect(factory.supportsInteractive(AgentType.Cursor)).toBe(true);
+      expect(factory.supportsInteractive(AgentType.CodexCli)).toBe(true);
     });
 
     it('should agree with createInteractiveExecutor for every agent type', () => {
@@ -536,7 +537,7 @@ describe('AgentExecutorFactory', () => {
     it('should name the interactive agents when an agent has no interactive support', () => {
       expect(() => factory.createInteractiveExecutor(AgentType.Dev, defaultAuthConfig)).toThrow(
         "Agent type 'dev' does not support interactive sessions. " +
-          "Interactive sessions are available for: 'claude-code', 'cursor'."
+          "Interactive sessions are available for: 'claude-code', 'cursor', 'codex-cli'."
       );
     });
   });

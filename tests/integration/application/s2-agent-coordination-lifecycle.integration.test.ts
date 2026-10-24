@@ -32,6 +32,7 @@ function workcell(id: string, runId?: string): Feature {
     slug: id,
     branch: `feat/${id}`,
     repositoryPath: '/repo',
+    specPath: `/repo/specs/${id}`,
     lifecycle: SdlcLifecycle.Implementation,
     agentRunId: runId,
     description: '',

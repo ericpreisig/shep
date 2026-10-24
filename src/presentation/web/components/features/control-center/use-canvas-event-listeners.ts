@@ -77,19 +77,21 @@ export function useCanvasEventListeners(handlers: CanvasEventListenerHandlers): 
           description?: string;
           repositoryPath: string;
           parentId?: string;
+          parentIds?: string[];
           applicationId?: string;
         }>
       ).detail;
 
       // When parentId is provided, attach to the parent feature node via a
       // dependency edge instead of the repo node.
-      if (detail.parentId) {
-        const parentNodeId = `feat-${detail.parentId}`;
+      if (detail.parentIds?.length || detail.parentId) {
+        const parentNodeId = `feat-${detail.parentIds?.[0] ?? detail.parentId}`;
         createFeatureNode(
           parentNodeId,
           {
             state: 'creating',
             featureId: detail.featureId,
+            ...(detail.parentIds ? { parentIds: detail.parentIds } : {}),
             name: detail.name,
             description: detail.description,
             repositoryPath: detail.repositoryPath,
