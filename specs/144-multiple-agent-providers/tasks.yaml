@@ -45,7 +45,7 @@ tasks:
 - id: task-3
   title: Expose provider management in existing settings and validate concurrent choices
   description: Expose provider management in existing settings and validate concurrent choices
-  state: InProgress
+  state: Done
   dependencies:
   - task-2
   acceptanceCriteria:

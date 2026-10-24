@@ -189,6 +189,7 @@ export type Settings = BaseEntity & {
   environment: EnvironmentConfig;
   system: SystemConfig;
   agent: AgentConfig;
+  agentProviders?: AgentConfig[];
   notifications: NotificationPreferences;
   workflow: WorkflowConfig;
   featureFlags?: FeatureFlags;

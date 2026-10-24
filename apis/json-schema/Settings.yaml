@@ -17,6 +17,11 @@ properties:
   agent:
     $ref: AgentConfig.yaml
     description: AI coding agent selection and authentication
+  agentProviders:
+    type: array
+    items:
+      $ref: AgentConfig.yaml
+    description: Independent provider configurations; agent remains the default provider
   notifications:
     $ref: NotificationPreferences.yaml
     description: Notification preferences for agent lifecycle events

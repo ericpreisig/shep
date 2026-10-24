@@ -1,0 +1,17 @@
+{
+  "default": "codex-cli",
+  "defaultAuth": "session",
+  "defaultHasToken": false,
+  "providers": [
+    {
+      "type": "codex-cli",
+      "authMethod": "session",
+      "hasToken": false
+    },
+    {
+      "type": "openrouter",
+      "authMethod": "token",
+      "hasToken": false
+    }
+  ]
+}

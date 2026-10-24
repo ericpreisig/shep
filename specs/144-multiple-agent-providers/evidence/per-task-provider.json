@@ -1,0 +1,7 @@
+{
+  "perTaskChoice": "openrouter",
+  "deferred": true,
+  "globalDefault": "codex-cli",
+  "globalAuth": "session",
+  "globalModel": "gpt-6.1-sol"
+}
