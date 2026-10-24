@@ -885,6 +885,47 @@ describe('createMergeNode (agent-driven)', () => {
 
   // --- Post-merge cleanup ---
   describe('post-merge cleanup', () => {
+    it('returns local files after verification and before Maintain/cleanup', async () => {
+      const transfer = vi.fn().mockResolvedValue(undefined);
+      const node = createMergeNode({ ...deps, mergeWorktreeFiles: transfer });
+      await node(
+        baseState({ approvalGates: { allowPrd: false, allowPlan: false, allowMerge: true } })
+      );
+      expect(transfer).toHaveBeenCalledWith('/tmp/repo', '/tmp/worktree', expect.any(String));
+      expect(vi.mocked(deps.verifyMerge).mock.invocationCallOrder[0]).toBeLessThan(
+        transfer.mock.invocationCallOrder[0]
+      );
+      expect(transfer.mock.invocationCallOrder[0]).toBeLessThan(
+        mockSetFeatureLifecycle.mock.invocationCallOrder[0]
+      );
+      expect(transfer.mock.invocationCallOrder[0]).toBeLessThan(
+        mockCleanupExecute.mock.invocationCallOrder[0]
+      );
+    });
+    it('keeps the feature recoverable if local files cannot be transferred', async () => {
+      const transfer = vi.fn().mockRejectedValue(new Error('asset transfer conflict'));
+      const node = createMergeNode({ ...deps, mergeWorktreeFiles: transfer });
+      await expect(
+        node(baseState({ approvalGates: { allowPrd: false, allowPlan: false, allowMerge: true } }))
+      ).rejects.toThrow('asset transfer conflict');
+      expect(mockCleanupExecute).not.toHaveBeenCalled();
+      expect(mockSetFeatureLifecycle).not.toHaveBeenCalledWith('Maintain');
+    });
+    it('also returns local files after a GitHub PR merge', async () => {
+      const transfer = vi.fn().mockResolvedValue(undefined);
+      await createMergeNode({ ...deps, mergeWorktreeFiles: transfer })(
+        baseState({
+          push: true,
+          openPr: true,
+          approvalGates: { allowPrd: false, allowPlan: false, allowMerge: true },
+        })
+      );
+      expect(deps.gitPrService.mergePr).toHaveBeenCalled();
+      expect(transfer).toHaveBeenCalled();
+      expect(vi.mocked(deps.gitPrService.mergePr).mock.invocationCallOrder[0]).toBeLessThan(
+        transfer.mock.invocationCallOrder[0]
+      );
+    });
     it('should call cleanupFeatureWorktreeUseCase.execute with feature id when merged=true', async () => {
       const node = createMergeNode(deps);
       const state = baseState({

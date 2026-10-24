@@ -110,6 +110,8 @@ export interface MergeNodeDeps {
   gitPrService: IGitPrService;
   gitForkService?: IGitForkService;
   cleanupFeatureWorktreeUseCase: Pick<CleanupFeatureWorktreeUseCase, 'execute'>;
+  /** Return configured local files after a verified merge, before Maintain or cleanup. */
+  mergeWorktreeFiles?: (repoPath: string, worktreePath: string, branch: string) => Promise<void>;
   /**
    * The docs-first gate (spec 131): whether a change in the repository may
    * auto-merge as far as documentation goes. Optional — absent, no gate.
@@ -626,6 +628,10 @@ export function createMergeNode(deps: MergeNodeDeps) {
             );
           }
         }
+      }
+
+      if (merged) {
+        await deps.mergeWorktreeFiles?.(state.repositoryPath, cwd, branch);
       }
 
       // --- Update feature lifecycle ---

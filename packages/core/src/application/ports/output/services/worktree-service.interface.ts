@@ -50,6 +50,8 @@ export class WorktreeError extends Error {
  * Service interface for git worktree management.
  */
 export interface IWorktreeService {
+  /** Return configured untracked files to the repository before post-merge cleanup. */
+  mergeFiles?(repoPath: string, worktreePath: string, branch: string): Promise<void>;
   /**
    * Create a new worktree with a new branch.
    *

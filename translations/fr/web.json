@@ -146,7 +146,7 @@
         "worktreeGuide": "Provisionnement de worktree personnalisé"
       },
       "copyPaths": "Fichiers locaux à copier",
-      "copyPathsDescription": "Un chemin relatif au dépôt par ligne. Copie les fichiers non suivis avant la préparation, en préservant les fichiers existants et suivis du worktree."
+      "copyPathsDescription": "Un chemin relatif au dépôt par ligne. Copie les fichiers locaux dans les nouveaux worktrees, puis rapatrie leurs ajouts et modifications après le merge."
     },
     "adaptiveModels": {
       "title": "Sélection adaptative du modèle",

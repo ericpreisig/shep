@@ -1,0 +1,49 @@
+feature:
+  id: 149-merge-worktree-files
+  name: merge-worktree-files
+  number: 149
+  branch: main
+  lifecycle: implementation
+  createdAt: '2026-10-24T07:05:09Z'
+status:
+  phase: ready-for-review
+  progress:
+    total: 3
+    completed: 3
+    percentage: 100
+  currentTask: null
+  lastUpdated: '2026-10-24T07:42:59.762551+00:00'
+  lastUpdatedBy: shep-kit:implement
+validation:
+  lastRun: '2026-10-24T07:42:59.762551+00:00'
+  gatesPassed:
+  - spec-validation
+  - targeted-tests
+  - typecheck
+  - eslint
+  - cli-build
+  - web-build
+  - forge-asset-catalogue
+  - forge-dotnet-build
+  - godot-headless-startup
+  autoFixesApplied: []
+tasks:
+  current: null
+  blocked: []
+  failed: []
+checkpoints:
+- phase: feature-created
+  completedAt: '2026-10-24T07:05:09Z'
+  completedBy: shep-kit:new-feature
+- phase: research-complete
+  completedAt: '2026-10-24T07:42:59.762551+00:00'
+  completedBy: shep-kit:research
+- phase: planning-complete
+  completedAt: '2026-10-24T07:42:59.762551+00:00'
+  completedBy: shep-kit:plan
+- phase: implementation-complete
+  completedAt: '2026-10-24T07:42:59.762551+00:00'
+  completedBy: shep-kit:implement
+errors:
+  current: null
+  history: []

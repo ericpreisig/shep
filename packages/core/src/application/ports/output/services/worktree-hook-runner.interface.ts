@@ -54,4 +54,6 @@ export interface IWorktreeHookRunner {
    * @throws WorktreeError with code HOOK_FAILED when the command fails or times out.
    */
   runPostCreateHook(context: WorktreeHookContext): Promise<void>;
+  /** Return configured local files after merge, before deleting the source worktree. */
+  runPostMergeHook?(context: WorktreeHookContext): Promise<void>;
 }

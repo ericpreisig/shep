@@ -46,6 +46,18 @@ Shep copies ignored and other untracked files from those paths before running
 locally) and existing files. Symlink paths and traversal outside the repository
 are rejected. Missing paths are skipped. Nothing is copied by default.
 
+The **same `copyPaths` list** also returns new and edited local files from the
+feature worktree after a successful merge, before the feature reaches Maintain
+and its worktree is removed. No second setting is required. Files tracked by
+Git remain under Git's control; ignored files stay local and are not force-added.
+
+Shep records initial content hashes in Git's per-worktree metadata. Unchanged
+worktree copies preserve concurrent edits in the main checkout. If both copies
+changed differently, the merge reports a file conflict and keeps the worktree
+for resolution. Older worktrees without an initial snapshot can restore missing
+files, but ambiguous overwrites are refused. Existing main files are never
+deleted by this transfer.
+
 For a .NET project with local media, select `assets` and set the existing
 post-create command to `dotnet build`. New worktrees then have their media and
 a successful build before the agent starts. Preparation failures stop feature

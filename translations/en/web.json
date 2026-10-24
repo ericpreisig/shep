@@ -146,7 +146,7 @@
         "worktreeGuide": "Custom worktree provisioning"
       },
       "copyPaths": "Local files to copy",
-      "copyPathsDescription": "One repository-relative path per line. Copies untracked files before setup, preserving existing and tracked worktree files."
+      "copyPathsDescription": "One repository-relative path per line. Copies local files into new worktrees and returns their additions and edits after merge."
     },
     "adaptiveModels": {
       "title": "Adaptive model selection",

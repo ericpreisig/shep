@@ -127,6 +127,10 @@ export class WorktreeService implements IWorktreeService {
     }
   }
 
+  async mergeFiles(repoPath: string, worktreePath: string, branch: string): Promise<void> {
+    await this.hookRunner.runPostMergeHook?.({ repoPath, worktreePath, branch });
+  }
+
   async prune(repoPath: string): Promise<void> {
     try {
       await this.execFile('git', ['worktree', 'prune'], { cwd: repoPath });

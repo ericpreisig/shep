@@ -31,6 +31,7 @@ import {
 } from '../../../domain/shared/worktree-config.js';
 import type { ExecFunction } from './worktree.service.js';
 import { copyWorktreeFiles } from './worktree-file-copy.js';
+import { captureWorktreeFiles, mergeWorktreeFiles } from './worktree-file-merge.js';
 
 /** Cap on captured stdout/stderr so a chatty install script cannot exhaust memory. */
 const COMMAND_MAX_BUFFER_BYTES = 10 * 1024 * 1024;
@@ -82,9 +83,15 @@ export class WorktreeHookRunner implements IWorktreeHookRunner {
     const config = this.readConfig();
     if (config?.copyPaths?.length) {
       try {
-        await copyWorktreeFiles(
+        const baseline = await copyWorktreeFiles(
           context,
           config.copyPaths,
+          this.execFile,
+          resolveWorktreeCommandTimeoutMs(config)
+        );
+        await captureWorktreeFiles(
+          context,
+          baseline,
           this.execFile,
           resolveWorktreeCommandTimeoutMs(config)
         );
@@ -100,6 +107,17 @@ export class WorktreeHookRunner implements IWorktreeHookRunner {
     if (!command) return;
 
     await this.run(command, POST_CREATE_HOOK_LABEL, context.worktreePath, context);
+  }
+
+  async runPostMergeHook(context: WorktreeHookContext): Promise<void> {
+    const config = this.readConfig();
+    if (!config?.copyPaths?.length) return;
+    await mergeWorktreeFiles(
+      context,
+      config.copyPaths,
+      this.execFile,
+      resolveWorktreeCommandTimeoutMs(config)
+    );
   }
 
   /**

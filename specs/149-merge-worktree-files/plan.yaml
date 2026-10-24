@@ -1,0 +1,50 @@
+name: merge-worktree-files
+relatedFeatures:
+- 147-implementation-efficiency
+technologies:
+- TypeScript
+- Node.js
+- Git
+relatedLinks: []
+openQuestions: []
+summary: Return configured local files from a feature worktree before reporting merge
+  completion or deleting it.
+phases:
+- id: phase-1
+  name: Restore Forge main and specify transfer (RED-GREEN-REFACTOR)
+  parallel: false
+  taskIds:
+  - task-1
+- id: phase-2
+  name: Integrate transfer and cleanup guard (RED-GREEN-REFACTOR)
+  parallel: false
+  taskIds:
+  - task-2
+- id: phase-3
+  name: Verify and deploy (RED-GREEN-REFACTOR)
+  parallel: false
+  taskIds:
+  - task-3
+filesToCreate:
+- packages/core/src/infrastructure/services/git/worktree-file-merge.ts
+filesToModify:
+- packages/core/src/infrastructure/services/git/worktree-file-copy.ts
+- packages/core/src/infrastructure/services/git/worktree-hook-runner.ts
+- packages/core/src/infrastructure/services/git/worktree.service.ts
+- packages/core/src/infrastructure/services/agents/feature-agent/nodes/merge/merge.node.ts
+content: '## Clean Architecture
+
+  Expose a merge-files operation through the existing worktree service; implement
+  filesystem operations in infrastructure. Wire it before Maintain in both merge paths
+  and before destructive cleanup. No new domain config or settings migration is needed.
+
+
+  ## RED-GREEN-REFACTOR
+
+  Write failing real-Git integration tests for ignored files, updates, stale source
+  preservation, conflicts, legacy worktrees, tracked files and symlink escapes. Add
+  merge/cleanup ordering and failure regressions. Extend existing helpers and minimize
+  shared logic. Validate targeted tests, typecheck, lint and build. Verify restored
+  Forge hashes, the live asset API and a headless Godot startup.
+
+  '

@@ -27,6 +27,7 @@ import type { IAgentCheckpointService } from '@/application/ports/output/agents/
 import type { IAgentRunRepository } from '@/application/ports/output/agents/agent-run-repository.interface.js';
 import type { IAgentExecutorProvider } from '@/application/ports/output/agents/agent-executor-provider.interface.js';
 import type { IAgentExecutorFactory } from '@/application/ports/output/agents/agent-executor-factory.interface.js';
+import type { IWorktreeService } from '@/application/ports/output/services/worktree-service.interface.js';
 import type { IFeatureRepository } from '@/application/ports/output/repositories/feature-repository.interface.js';
 import { FeatureContextExecutor } from './feature-context-executor.js';
 import type { IInteractiveMessageRepository } from '@/application/ports/output/repositories/interactive-message-repository.interface.js';
@@ -445,6 +446,12 @@ export async function runWorker(args: WorkerArgs): Promise<void> {
       gitPrService,
       gitForkService: container.resolve<IGitForkService>('IGitForkService'),
       cleanupFeatureWorktreeUseCase,
+      mergeWorktreeFiles: (repoPath, worktreePath, branch) =>
+        container.resolve<IWorktreeService>('IWorktreeService').mergeFiles!(
+          repoPath,
+          worktreePath,
+          branch
+        ),
       telemetry: container.resolve<ITelemetry>('ITelemetry'),
       checkDocsGate: (repositoryPath: string, changedFiles: readonly string[]) =>
         container.resolve(CheckDocsGateUseCase).execute(repositoryPath, changedFiles),

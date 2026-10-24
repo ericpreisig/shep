@@ -1,0 +1,66 @@
+name: merge-worktree-files
+relatedFeatures:
+- 147-implementation-efficiency
+technologies:
+- TypeScript
+- Node.js
+- Git
+relatedLinks: []
+openQuestions: []
+summary: Return configured local files from a feature worktree before reporting merge
+  completion or deleting it.
+totalEstimate: 2h
+tasks:
+- id: task-1
+  title: Restore Forge main and specify transfer (RED-GREEN-REFACTOR)
+  description: Restore Forge main and specify transfer (RED-GREEN-REFACTOR)
+  state: Done
+  dependencies: []
+  acceptanceCriteria:
+  - Restore original assets and cover file-transfer cases.
+  tdd:
+    red:
+    - Add a behavioral regression reproducing the missing ignored asset.
+    green:
+    - Reuse the existing transfer configuration and native filesystem tools.
+    refactor:
+    - Keep one path guard and preserve backwards compatibility.
+  estimatedEffort: 40m
+- id: task-2
+  title: Integrate transfer and cleanup guard (RED-GREEN-REFACTOR)
+  description: Integrate transfer and cleanup guard (RED-GREEN-REFACTOR)
+  state: Done
+  dependencies:
+  - task-1
+  acceptanceCriteria:
+  - Transfer before completion and never clean up after a failed transfer.
+  tdd:
+    red:
+    - Add a behavioral regression reproducing the missing ignored asset.
+    green:
+    - Reuse the existing transfer configuration and native filesystem tools.
+    refactor:
+    - Keep one path guard and preserve backwards compatibility.
+  estimatedEffort: 40m
+- id: task-3
+  title: Verify and deploy (RED-GREEN-REFACTOR)
+  description: Verify and deploy (RED-GREEN-REFACTOR)
+  state: Done
+  dependencies:
+  - task-2
+  acceptanceCriteria:
+  - Pass scoped checks and deploy on main without stopping running agents.
+  tdd:
+    red:
+    - Add a behavioral regression reproducing the missing ignored asset.
+    green:
+    - Reuse the existing transfer configuration and native filesystem tools.
+    refactor:
+    - Keep one path guard and preserve backwards compatibility.
+  estimatedEffort: 40m
+content: '## Acceptance Checklist
+
+  The same assets configuration populates new worktrees and returns their new/changed
+  media at merge.
+
+  '

@@ -1,5 +1,11 @@
 # Lessons Learned
 
+## Local files must survive both directions of a worktree
+
+Git cannot merge ignored media. Reuse worktree.copyPaths to return local files
+before Maintain and cleanup, preserving the source on conflicts or copy failures.
+Validate resource references in the final main checkout, not only in the worktree.
+
 ## Adaptive choices must retain their provider
 
 Use the shared multi-provider picker for tier overrides. Persist provider and model
