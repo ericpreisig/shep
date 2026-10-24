@@ -1,5 +1,11 @@
 # Lessons Learned
 
+## Explanation requests do not authorize implementation
+
+When the user asks why something fails or how it could work, answer the question.
+Do not start specs, tests, code changes or deployment without an implementation
+request; prior related work does not turn a new explanation into authorization.
+
 ## Importing into a fork requires an independent database
 
 When the user asks to import an installation's tasks into a fork, copy its database
