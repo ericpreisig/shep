@@ -415,7 +415,7 @@ export function FeatureNode({
         ) : null}
 
         {/* Bottom section — pushed to bottom for consistent card height */}
-        <div className="mt-auto pt-2">
+        <div className="mt-auto min-w-0 pt-2">
           {/* Feature ID — always visible, truncated, copiable */}
           {/* Progress bar (if applicable) */}
           {config.showProgressBar ? (
@@ -733,20 +733,6 @@ export function FeatureNode({
                 <RotateCcw className="h-3 w-3" />
                 {t('featureNode.retry')}
               </Button>
-            ) : data.state === 'blocked' ? (
-              <div
-                className="flex items-center gap-1.5 text-xs"
-                data-testid="feature-node-badge"
-                {...statusLiveRegion(statusAnnouncement)}
-              >
-                {(() => {
-                  const BadgeIcon = getBadgeIcon(data);
-                  return <BadgeIcon className={cn('h-3.5 w-3.5 shrink-0', config.badgeClass)} />;
-                })()}
-                <span className={cn('truncate text-[11px] font-medium', config.badgeClass)}>
-                  {getBadgeText(data, t)}
-                </span>
-              </div>
             ) : data.state === 'done' ? (
               <div
                 className="flex items-center gap-1.5 text-xs"
@@ -778,6 +764,20 @@ export function FeatureNode({
               </Button>
             ) : null}
           </div>
+
+          {data.state === 'blocked' ? (
+            <div
+              className="mt-1 flex min-w-0 items-center gap-1.5 text-xs"
+              data-testid="feature-node-badge"
+              {...statusLiveRegion(statusAnnouncement)}
+              title={getBadgeText(data, t)}
+            >
+              <Icon className={cn('h-3.5 w-3.5 shrink-0', config.badgeClass)} />
+              <span className={cn('min-w-0 truncate text-[11px] font-medium', config.badgeClass)}>
+                {getBadgeText(data, t)}
+              </span>
+            </div>
+          ) : null}
         </div>
       </div>
 

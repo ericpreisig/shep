@@ -1,0 +1,41 @@
+name: blocked-label-layout
+number: 146
+branch: main
+phase: Implementation
+sizeEstimate: S
+technologies:
+- React
+- Tailwind CSS
+- React Flow
+- Storybook
+relatedFeatures:
+- 142-project-orchestration
+relatedLinks: []
+openQuestions: []
+summary: Fix and visually verify the existing blocked badge.
+totalEstimate: S
+tasks:
+- id: task-1
+  title: Move and truncate the dependency waiting label
+  description: Reuse the feature card status and add a long multi-parent Storybook
+    example.
+  state: Done
+  dependencies: []
+  acceptanceCriteria:
+  - Waiting label is below the controls.
+  - Long labels use an ellipsis and stay inside the card.
+  - Full label is available on hover and to screen readers.
+  tdd:
+    red:
+    - Reproduce overflow using the reported card and live DOM measurements.
+    green:
+    - Move the badge below the controls and constrain the text width.
+    refactor:
+    - Retain existing status semantics and use existing Tailwind utilities.
+  estimatedEffort: S
+content: '## Acceptance
+
+
+  Verify the actual long dependency label in the running fork after rebuilding.
+
+  '

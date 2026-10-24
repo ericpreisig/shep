@@ -1,0 +1,29 @@
+name: blocked-label-layout
+number: 146
+branch: main
+phase: Implementation
+sizeEstimate: S
+technologies:
+- React
+- Tailwind CSS
+- React Flow
+- Storybook
+relatedFeatures:
+- 142-project-orchestration
+relatedLinks: []
+openQuestions: []
+summary: Reuse the current blocked badge and Tailwind truncation.
+decisions:
+- title: Constrain a separate status row
+  chosen: Move the existing blocked badge after the control row; use min-w-0 and truncate.
+  rejected:
+  - Widen feature cards
+  - Change dependency text or scheduling
+  rationale: The defect is presentational and requires no new components or dependencies.
+content: '## Rendering
+
+
+  The live blocked badge is wider than its 388 px card and shares the controls row.
+  Existing status semantics and clock icon can be moved unchanged.
+
+  '

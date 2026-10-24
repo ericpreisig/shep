@@ -412,6 +412,20 @@ export const BlockedByFeature: Story = {
   render: (args) => <FeatureNodeCanvas data={args} />,
 };
 
+export const BlockedByMultipleLongFeatures: Story = {
+  args: {
+    ...BlockedByFeature.args,
+    name: 'Progression par expérience et niveaux',
+    description:
+      'Chaque monstre vaincu rapporte des points d’expérience au joueur, lui permettant de monter de niveau au fil des combats.',
+    lifecycle: 'requirements',
+    agentType: 'codex-cli',
+    blockedBy:
+      'Combat au tour par tour stylisé, Rencontres avec des monstres itinérants, Menu d’équipement et statistiques du personnage, Récompense d’expérience par type de monstre',
+  },
+  render: (args) => <FeatureNodeCanvas data={args} />,
+};
+
 /**
  * Held back by the parallel-feature limit rather than by the user. It is fully
  * initialized and starts on its own as soon as a slot frees — which is exactly

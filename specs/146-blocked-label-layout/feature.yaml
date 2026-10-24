@@ -1,0 +1,22 @@
+feature:
+  id: 146-blocked-label-layout
+  name: blocked-label-layout
+  number: 146
+  branch: main
+  lifecycle: implementation
+status:
+  phase: ready-for-review
+  currentTask: null
+  progress:
+    total: 1
+    completed: 1
+    percentage: 100
+  lastUpdated: '2026-10-24T05:24:58.350569+00:00'
+  lastUpdatedBy: shep-kit:implement
+checkpoints:
+- phase: plan-complete
+  completedAt: '2026-10-24T05:17:27.342721+00:00'
+  completedBy: shep-kit:new-feature-fast
+- phase: implementation-complete
+  completedAt: '2026-10-24T05:24:58.350569+00:00'
+  completedBy: shep-kit:implement

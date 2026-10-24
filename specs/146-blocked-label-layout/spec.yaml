@@ -1,0 +1,30 @@
+name: blocked-label-layout
+number: 146
+branch: main
+phase: Implementation
+sizeEstimate: S
+technologies:
+- React
+- Tailwind CSS
+- React Flow
+- Storybook
+relatedFeatures:
+- 142-project-orchestration
+relatedLinks: []
+openQuestions: []
+oneLiner: Keep long dependency waiting labels below feature card controls and truncate
+  them.
+summary: The blocked status currently shares a flex row with controls and overflows
+  the card when several parents have long names.
+content: '## Success Criteria
+
+
+  - Render the waiting status on its own line below the controls.
+
+  - Keep a single line with an ellipsis inside the card width.
+
+  - Preserve the full text in the status announcement and a hover title.
+
+  - Verify the affected real project card and keep other feature states unchanged.
+
+  '

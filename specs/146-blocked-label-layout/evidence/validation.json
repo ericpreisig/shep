@@ -1,0 +1,26 @@
+{
+  "feature": "Progression par expérience et niveaux",
+  "before": {
+    "cardWidth": 229.1125946044922,
+    "badgeWidth": 775.5062866210938,
+    "overflowsCard": true,
+    "sharesControlRow": true
+  },
+  "after": {
+    "belowControls": true,
+    "insideCard": true,
+    "truncated": true,
+    "textOverflow": "ellipsis",
+    "whiteSpace": "nowrap",
+    "fullTextAvailableOnHover": true
+  },
+  "checks": {
+    "componentTests": 96,
+    "lint": "passed",
+    "webTypecheck": "passed",
+    "productionWebBuild": "passed",
+    "featureNodeStorybookBuild": "passed"
+  },
+  "existingGlobalStorybookBlocker": "Missing .storybook/mocks/app/actions/feature-work-controls; verified only the feature-node stories through a temporary focused configuration.",
+  "screenshot": "/tmp/shep-attente-corrigee.png"
+}
