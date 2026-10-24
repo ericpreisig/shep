@@ -1,5 +1,13 @@
 # Lessons Learned
 
+## Importing into a fork requires an independent database
+
+When the user asks to import an installation's tasks into a fork, copy its database
+to a distinct `SHEP_HOME` and verify the launcher's environment. Do not silently
+reuse the original database. A copied active run must not control the original
+worker: apply the requested imported status and clear its process handle only in
+the destination, leaving the original execution unchanged.
+
 ## Persisted retry state needs a "this will never work" branch
 
 A chat boot that failed re-cached its agent session id, and the DB kept it too,
