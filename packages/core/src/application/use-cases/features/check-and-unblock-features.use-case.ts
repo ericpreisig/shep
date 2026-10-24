@@ -212,6 +212,7 @@ export class CheckAndUnblockFeaturesUseCase {
       repositoryPath: child.repositoryPath,
       branch: child.branch,
       parentBranch: parent.branch,
+      ...(featureParentIds(child).length > 1 ? { useLocalBase: true } : {}),
     });
     let timer: ReturnType<typeof setTimeout> | undefined;
     const timedOut = new Promise<typeof REBASE_TIMED_OUT>((resolve) => {

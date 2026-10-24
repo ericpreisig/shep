@@ -409,6 +409,21 @@ describe('StartFeatureUseCase', () => {
     });
   });
 
+  it('uses the landed local base when manually starting a feature with several parents', async () => {
+    const child = createTestFeature({ parentIds: ['a', 'b'] });
+    const parents = ['a', 'b'].map((id) =>
+      createTestFeature({ id, lifecycle: SdlcLifecycle.Maintain })
+    );
+    featureRepo.findById.mockImplementation(
+      async (id) => [child, ...parents].find((f) => f.id === id) ?? null
+    );
+    runRepo.findById.mockResolvedValue(createTestRun());
+    await useCase.execute(child.id);
+    expect(syncFeatureBranch.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ useLocalBase: true })
+    );
+  });
+
   it('should transition fast feature with satisfied parent to Implementation', async () => {
     const feature = createTestFeature({ parentId: 'parent-id', fast: true });
     const parent = createTestFeature({

@@ -232,6 +232,24 @@ describe('CheckAndUnblockFeaturesUseCase — Auto-Sync', () => {
     expect(mockAgentProcess.spawn).toHaveBeenCalledOnce();
   });
 
+  it('uses the shared base for a join so every squashed parent is available', async () => {
+    const parent = makeFeature({ id: parentId, branch: 'feat/last-parent' });
+    const child = makeFeature({
+      id: 'join',
+      lifecycle: SdlcLifecycle.Blocked,
+      parentIds: ['first', parentId],
+    });
+    vi.mocked(mockFeatureRepo.findById).mockResolvedValue(parent);
+    vi.mocked(mockFeatureRepo.findByParentId).mockResolvedValue([child]);
+    await useCase.execute(parentId);
+    expect(mockSyncFeatureBranch.execute).toHaveBeenCalledWith({
+      repositoryPath: '/repo',
+      branch: child.branch,
+      parentBranch: parent.branch,
+      useLocalBase: true,
+    });
+  });
+
   it('should never stash — the shared sync commits work in progress instead', async () => {
     // `git stash push` ignores untracked files, so a worktree holding only new
     // files stays dirty and the rebase aborts. The sync use case commits.

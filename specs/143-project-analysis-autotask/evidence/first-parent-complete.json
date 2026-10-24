@@ -1,0 +1,26 @@
+[
+  [
+    "d21dc650-7c9e-4c36-ad53-bb474ce43096",
+    "Marché local : tarification et transactions",
+    "Blocked",
+    "[\"preview-inventory\",\"144f6465-2f1f-4a39-8aa0-ab64bf2f43b7\",\"5c8ef090-c267-4da7-aab6-e34423e7e6e4\",\"4e68adee-e8c2-4064-ac82-95d116070a8a\"]",
+    "pending",
+    null
+  ],
+  [
+    "5c8ef090-c267-4da7-aab6-e34423e7e6e4",
+    "Créer le catalogue de prix",
+    "Maintain",
+    "[]",
+    "running",
+    1792811136391
+  ],
+  [
+    "4e68adee-e8c2-4064-ac82-95d116070a8a",
+    "Créer le moteur d’achat et de vente",
+    "Review",
+    "[\"preview-inventory\",\"144f6465-2f1f-4a39-8aa0-ab64bf2f43b7\"]",
+    "waiting_approval",
+    1792810946375
+  ]
+]

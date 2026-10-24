@@ -159,6 +159,7 @@ export class AdmitQueuedFeaturesUseCase {
     const result = await this.spawnFeatureAgent.execute({
       feature: admitted,
       ...(parent ? { parentBranch: parent.branch } : {}),
+      ...(featureParentIds(feature).length > 1 ? { useLocalBase: true } : {}),
     });
 
     return result.spawned;

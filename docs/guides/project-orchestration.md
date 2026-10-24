@@ -21,6 +21,8 @@ Select multiple **Parent tasks** in the creation drawer. In the task's **Overvie
 
 All selected parents must have completed and landed their work before the child starts. Archiving a completed parent preserves that completion. Cycles and dependencies across repositories are refused, including an atomic cycle check when saving. The execution canvas draws each prerequisite separately; removing one edge preserves the other prerequisites.
 
+A join rebases onto the local base branch containing all landed parents, including squash merges that have not been pushed. Local repositories without a remote also rebase onto their local base. This applies to manual starts, automatic unblocking and capacity admission.
+
 Every execution phase receives context from all current parents: names, descriptions, branches, available specification artifacts and bounded conversation excerpts. Durable user corrections accompany later phases too. The legacy `parentId` field represents the first parent for compatibility; `parentIds` is authoritative when present, including an empty array.
 
 ## Redirect work

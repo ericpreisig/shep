@@ -1016,7 +1016,12 @@ export class GitPrService implements IGitPrService {
     }
   }
 
-  async rebaseOnMain(cwd: string, featureBranch: string, baseBranch: string): Promise<void> {
+  async rebaseOnMain(
+    cwd: string,
+    featureBranch: string,
+    baseBranch: string,
+    useLocalBase = false
+  ): Promise<void> {
     assertSafeGitRef(featureBranch, 'featureBranch');
     assertSafeGitRef(baseBranch, 'baseBranch');
 
@@ -1054,11 +1059,11 @@ export class GitPrService implements IGitPrService {
       );
     }
 
-    // Rebase onto origin/<baseBranch> (the remote-tracking ref).
+    // Default to origin/<baseBranch>; joins use the local base holding every landed parent.
     // We use origin/<baseBranch> rather than the local <baseBranch> because:
     // 1. syncMain fetches origin/<baseBranch> — it's always up-to-date
     // 2. The local <baseBranch> may be checked out in another worktree and stale
-    const rebaseTarget = `origin/${baseBranch}`;
+    const rebaseTarget = useLocalBase ? baseBranch : `origin/${baseBranch}`;
     try {
       await this.execFile('git', ['rebase', '--', rebaseTarget], { cwd });
     } catch (error) {

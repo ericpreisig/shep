@@ -124,6 +124,33 @@ describe('SyncFeatureBranchUseCase (real git)', () => {
     expect(existsSync(join(repoPath, 'feature.txt'))).toBe(true);
   });
 
+  it.each([true, false])(
+    'carries two locally squashed prerequisites, remote=%s',
+    async (hasRemote) => {
+      if (!hasRemote) await git(repoPath, ['remote', 'remove', 'origin']);
+      await git(repoPath, ['checkout', BASE_BRANCH]);
+      await git(repoPath, ['checkout', '-b', 'feat/parent-a']);
+      await commitFile(repoPath, 'a.txt', 'A\n', 'feat: first prerequisite');
+      await git(repoPath, ['checkout', BASE_BRANCH]);
+      await git(repoPath, ['merge', '--squash', 'feat/parent-a']);
+      await git(repoPath, ['commit', '-m', 'feat: land first prerequisite']);
+      await git(repoPath, ['checkout', '-b', 'feat/parent-b']);
+      await commitFile(repoPath, 'b.txt', 'B\n', 'feat: second prerequisite');
+      await git(repoPath, ['checkout', BASE_BRANCH]);
+      await git(repoPath, ['merge', '--squash', 'feat/parent-b']);
+      await git(repoPath, ['commit', '-m', 'feat: land second prerequisite']);
+      await git(repoPath, ['checkout', FEATURE_BRANCH]);
+      await useCase.execute({
+        repositoryPath: repoPath,
+        branch: FEATURE_BRANCH,
+        useLocalBase: hasRemote,
+      });
+      expect(await isAncestor(BASE_BRANCH, 'HEAD')).toBe(true);
+      expect(readFileSync(join(repoPath, 'a.txt'), 'utf8')).toBe('A\n');
+      expect(readFileSync(join(repoPath, 'b.txt'), 'utf8')).toBe('B\n');
+    }
+  );
+
   it('should commit modified tracked files before rebasing', async () => {
     writeFileSync(join(repoPath, 'feature.txt'), 'feature work, edited\n');
 

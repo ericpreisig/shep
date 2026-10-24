@@ -62,6 +62,8 @@ export interface SyncFeatureBranchInput {
    * instead of every caller re-deriving it.
    */
   parentBranch?: string;
+  /** All prerequisites landed locally, including squash merges not yet pushed. */
+  useLocalBase?: boolean;
 }
 
 export interface SyncFeatureBranchResult {
@@ -111,17 +113,23 @@ export class SyncFeatureBranchUseCase {
 
     // 2. Refresh the base branch from the remote so the rebase target is the
     //    latest upstream state, not a stale local ref.
-    await this.gitPrService.syncMain(cwd, baseBranch);
+    const hasRemote = await this.gitPrService.hasRemote(cwd);
+    const useLocalBase = input.useLocalBase === true;
+    if (hasRemote && !useLocalBase) await this.gitPrService.syncMain(cwd, baseBranch);
 
     // 3. Decide what to rebase onto — the base branch, or a parent branch whose
     //    work has not reached the base branch yet.
-    const rebasedOnto = await this.resolveRebaseTarget(cwd, baseBranch, input.parentBranch);
+    const rebasedOnto = useLocalBase
+      ? baseBranch
+      : await this.resolveRebaseTarget(cwd, baseBranch, input.parentBranch);
 
     // 4. Rebase, delegating any conflicts to agent-powered resolution.
     let conflictsResolved = false;
     try {
       if (rebasedOnto === baseBranch) {
-        await this.gitPrService.rebaseOnMain(cwd, input.branch, baseBranch);
+        if (useLocalBase || !hasRemote)
+          await this.gitPrService.rebaseOnMain(cwd, input.branch, baseBranch, true);
+        else await this.gitPrService.rebaseOnMain(cwd, input.branch, baseBranch);
       } else {
         await this.gitPrService.rebaseOnBranch(cwd, input.branch, rebasedOnto);
       }

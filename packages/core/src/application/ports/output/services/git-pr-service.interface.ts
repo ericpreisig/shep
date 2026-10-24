@@ -442,6 +442,7 @@ export interface IGitPrService {
    * Rebase the feature branch onto `origin/<baseBranch>`.
    * Uses the remote-tracking ref (not the local branch) to avoid issues
    * when the local base branch is checked out in another worktree.
+   * useLocalBase instead selects the local base holding completed prerequisites.
    * Checks for dirty worktree before starting. Detects conflict state
    * from git exit code and stderr — throws REBASE_CONFLICT if conflicts
    * are encountered (caller is responsible for resolution or abort).
@@ -449,11 +450,17 @@ export interface IGitPrService {
    * @param cwd - Working directory path
    * @param featureBranch - The feature branch to rebase
    * @param baseBranch - The base branch name (rebase target will be origin/<baseBranch>)
+   * @param useLocalBase - Use the local base containing landed prerequisites instead of origin
    * @throws GitPrError with GIT_ERROR code if the worktree is dirty
    * @throws GitPrError with REBASE_CONFLICT code if conflicts are detected
    * @throws GitPrError with BRANCH_NOT_FOUND code if a branch does not exist
    */
-  rebaseOnMain(cwd: string, featureBranch: string, baseBranch: string): Promise<void>;
+  rebaseOnMain(
+    cwd: string,
+    featureBranch: string,
+    baseBranch: string,
+    useLocalBase?: boolean
+  ): Promise<void>;
 
   /**
    * Rebase the feature branch onto `origin/<targetBranch>`.

@@ -229,6 +229,7 @@ export class StartFeatureUseCase {
     await this.spawnFeatureAgent.execute({
       feature: updatedFeature,
       ...(parent ? { parentBranch: parent.branch } : {}),
+      ...(featureParentIds(resolved).length > 1 ? { useLocalBase: true } : {}),
     });
 
     return {

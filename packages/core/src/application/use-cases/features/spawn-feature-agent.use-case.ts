@@ -58,6 +58,8 @@ export interface SpawnFeatureAgentInput {
   syncBranch?: boolean;
   /** Branch this feature's work depends on, when it has a parent. */
   parentBranch?: string;
+  /** Use the local landed base when joining several completed prerequisites. */
+  useLocalBase?: boolean;
 }
 
 export interface SpawnFeatureAgentResult {
@@ -113,6 +115,7 @@ export class SpawnFeatureAgentUseCase {
           repositoryPath: feature.repositoryPath,
           branch: feature.branch,
           ...(parentBranch ? { parentBranch } : {}),
+          ...(input.useLocalBase ? { useLocalBase: true } : {}),
         });
       } catch {
         // Sync failure is non-fatal — the agent starts from the current tree.
